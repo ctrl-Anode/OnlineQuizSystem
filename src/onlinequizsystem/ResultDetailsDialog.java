@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class ResultDetailsDialog extends JDialog {
+	private static final long serialVersionUID = 1L;
     private int studentId;
     private int quizId;
 

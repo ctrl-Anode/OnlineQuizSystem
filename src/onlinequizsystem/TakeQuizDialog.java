@@ -1,202 +1,227 @@
 package onlinequizsystem;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Component;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
 
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JOptionPane;
+import javax.swing.JLabel;
+import javax.swing.JRadioButton;
+import javax.swing.ButtonGroup;
+import javax.swing.BoxLayout;
+import javax.swing.border.EmptyBorder;
+
 public class TakeQuizDialog extends JDialog {
-    private final int quizId;
-    private final int studentId;
-    private final JPanel questionPanel;
-    private final HashMap<Integer, ButtonGroup> answerGroups = new HashMap<>();
 
-    public TakeQuizDialog(int quizId, int studentId) {
-        super((Frame) null, "Take Quiz", true);
-        this.quizId = quizId;
-        this.studentId = studentId;
+	private static final long serialVersionUID = 1L;
+	private final JPanel contentPanel = new JPanel();
 
-        setSize(700, 600);
-        setLocationRelativeTo(null);
+	private int quizId;
+	private int studentId;
+	private JPanel questionPanel;
+	private HashMap<Integer, ButtonGroup> answerGroups = new HashMap<>();
 
-        questionPanel = new JPanel();
-        questionPanel.setLayout(new BoxLayout(questionPanel, BoxLayout.Y_AXIS));
-        questionPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+	/**
+	 * Launch the dialog for testing
+	 */
+	public static void main(String[] args) {
+		try {
+			TakeQuizDialog dialog = new TakeQuizDialog(1, 1); // test values
+			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			dialog.setVisible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-        JScrollPane scrollPane = new JScrollPane(questionPanel);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+	/**
+	 * Create the dialog.
+	 */
+	public TakeQuizDialog(int quizId, int studentId) {
+		this.quizId = quizId;
+		this.studentId = studentId;
 
-        JButton submitButton = new JButton("Submit Quiz");
-        submitButton.setFont(new Font("Arial", Font.BOLD, 14));
-        submitButton.setBackground(new Color(46, 139, 87));
-        submitButton.setForeground(Color.WHITE);
-        submitButton.setFocusPainted(false);
-        submitButton.addActionListener(e -> submitQuiz());
+		setTitle("Take Quiz");
+		setBounds(100, 100, 700, 600);
+		getContentPane().setLayout(new BorderLayout());
+		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPanel.setLayout(new BorderLayout());
+		getContentPane().add(contentPanel, BorderLayout.CENTER);
 
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        bottomPanel.add(submitButton);
+		// Question panel with scroll
+		questionPanel = new JPanel();
+		questionPanel.setLayout(new BoxLayout(questionPanel, BoxLayout.Y_AXIS));
+		JScrollPane scrollPane = new JScrollPane(questionPanel);
+		contentPanel.add(scrollPane, BorderLayout.CENTER);
 
-        add(scrollPane, BorderLayout.CENTER);
-        add(bottomPanel, BorderLayout.SOUTH);
+		// Button pane
+		JPanel buttonPane = new JPanel();
+		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
-        // ✅ Check if student already took this quiz
-        if (alreadyAttempted()) {
-            JOptionPane.showMessageDialog(this,
-                    "⚠️ You have already taken this quiz.\nYou cannot attempt it again.",
-                    "Quiz Attempted", JOptionPane.WARNING_MESSAGE);
-            dispose();
-            return;
-        }
+		JButton submitButton = new JButton("Submit Quiz");
+		submitButton.addActionListener(e -> submitQuiz());
+		buttonPane.add(submitButton);
 
-        // ✅ Log when quiz is opened
-        logQuizAction("started");
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(e -> dispose());
+		buttonPane.add(cancelButton);
 
-        loadQuestions();
-    }
+		// Check if already attempted
+		if (alreadyAttempted()) {
+			JOptionPane.showMessageDialog(this, "You already took this quiz!", "Warning", JOptionPane.WARNING_MESSAGE);
+			dispose();
+			return;
+		}
 
-    /** Check if student already has a result entry for this quiz */
-    private boolean alreadyAttempted() {
-        try (Connection conn = DBConnection.getConnection()) {
-            String sql = "SELECT 1 FROM results WHERE student_id = ? AND quiz_id = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, studentId);
-            stmt.setInt(2, quizId);
-            ResultSet rs = stmt.executeQuery();
-            return rs.next(); // true if result exists
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+		// Log quiz start
+		logQuizAction("started");
 
-    /** Log actions in quiz_logs table */
-    private void logQuizAction(String action) {
-        try (Connection conn = DBConnection.getConnection()) {
-            String sql = "INSERT INTO quiz_logs (user_id, quiz_id, action, timestamp) VALUES (?, ?, ?, NOW())";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, studentId);
-            stmt.setInt(2, quizId);
-            stmt.setString(3, action);
-            stmt.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+		// Load questions
+		loadQuestions();
+	}
 
-    private void loadQuestions() {
-        try (Connection conn = DBConnection.getConnection()) {
-            String sql = "SELECT question_id, question_text FROM questions WHERE quiz_id = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, quizId);
-            ResultSet rs = stmt.executeQuery();
+	// Check if quiz already taken
+	private boolean alreadyAttempted() {
+		try (Connection conn = DBConnection.getConnection()) {
+			String sql = "SELECT 1 FROM results WHERE student_id = ? AND quiz_id = ?";
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, studentId);
+			stmt.setInt(2, quizId);
+			ResultSet rs = stmt.executeQuery();
+			return rs.next();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
 
-            int qNum = 1;
-            while (rs.next()) {
-                int questionId = rs.getInt("question_id");
-                String questionText = rs.getString("question_text");
+	// Log actions
+	private void logQuizAction(String action) {
+		try (Connection conn = DBConnection.getConnection()) {
+			String sql = "INSERT INTO quiz_logs (user_id, quiz_id, action, timestamp) VALUES (?, ?, ?, NOW())";
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, studentId);
+			stmt.setInt(2, quizId);
+			stmt.setString(3, action);
+			stmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-                JLabel qLabel = new JLabel("Q" + qNum + ": " + questionText);
-                qLabel.setFont(new Font("Arial", Font.BOLD, 14));
-                qLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 5, 0));
+	// Load quiz questions
+	private void loadQuestions() {
+		try (Connection conn = DBConnection.getConnection()) {
+			String sql = "SELECT question_id, question_text FROM questions WHERE quiz_id = ?";
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, quizId);
+			ResultSet rs = stmt.executeQuery();
 
-                JPanel qPanel = new JPanel();
-                qPanel.setLayout(new BoxLayout(qPanel, BoxLayout.Y_AXIS));
-                qPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-                qPanel.add(qLabel);
+			int qNum = 1;
+			while (rs.next()) {
+				int questionId = rs.getInt("question_id");
+				String questionText = rs.getString("question_text");
 
-                ButtonGroup group = new ButtonGroup();
+				JLabel qLabel = new JLabel("Q" + qNum + ": " + questionText);
 
-                PreparedStatement optStmt = conn.prepareStatement(
-                        "SELECT option_id, option_text FROM options WHERE question_id = ?"
-                );
-                optStmt.setInt(1, questionId);
-                ResultSet optRs = optStmt.executeQuery();
+				JPanel qPanel = new JPanel();
+				qPanel.setLayout(new BoxLayout(qPanel, BoxLayout.Y_AXIS));
+				qPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+				qPanel.add(qLabel);
 
-                JPanel optionPanel = new JPanel();
-                optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.Y_AXIS));
-                optionPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 10, 0));
+				ButtonGroup group = new ButtonGroup();
 
-                while (optRs.next()) {
-                    int optionId = optRs.getInt("option_id");
-                    String optionText = optRs.getString("option_text");
+				PreparedStatement optStmt = conn.prepareStatement(
+					"SELECT option_id, option_text FROM options WHERE question_id = ?"
+				);
+				optStmt.setInt(1, questionId);
+				ResultSet optRs = optStmt.executeQuery();
 
-                    JRadioButton optionBtn = new JRadioButton(optionText);
-                    optionBtn.setFont(new Font("Arial", Font.PLAIN, 13));
-                    optionBtn.setActionCommand(String.valueOf(optionId));
-                    group.add(optionBtn);
-                    optionPanel.add(optionBtn);
-                }
+				while (optRs.next()) {
+					int optionId = optRs.getInt("option_id");
+					String optionText = optRs.getString("option_text");
 
-                qPanel.add(optionPanel);
-                answerGroups.put(questionId, group);
-                questionPanel.add(qPanel);
+					JRadioButton optionBtn = new JRadioButton(optionText);
+					optionBtn.setActionCommand(String.valueOf(optionId));
+					group.add(optionBtn);
+					qPanel.add(optionBtn);
+				}
 
-                qNum++;
-            }
+				answerGroups.put(questionId, group);
+				questionPanel.add(qPanel);
 
-            questionPanel.revalidate();
-            questionPanel.repaint();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error loading questions: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+				qNum++;
+			}
 
-    private void submitQuiz() {
-        int score = 0;
-        int total = answerGroups.size();
+			questionPanel.revalidate();
+			questionPanel.repaint();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, "Error loading questions: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
-        try (Connection conn = DBConnection.getConnection()) {
-            for (Integer questionId : answerGroups.keySet()) {
-                ButtonGroup group = answerGroups.get(questionId);
-                if (group.getSelection() == null) continue; // no answer selected
+	// Submit quiz
+	private void submitQuiz() {
+		int score = 0;
+		int total = answerGroups.size();
 
-                int selectedOptionId = Integer.parseInt(group.getSelection().getActionCommand());
+		try (Connection conn = DBConnection.getConnection()) {
+			for (Integer questionId : answerGroups.keySet()) {
+				ButtonGroup group = answerGroups.get(questionId);
+				if (group.getSelection() == null) continue;
 
-                // get option text for record
-                String optSql = "SELECT option_text, is_correct FROM options WHERE option_id = ?";
-                PreparedStatement optStmt = conn.prepareStatement(optSql);
-                optStmt.setInt(1, selectedOptionId);
-                ResultSet optRs = optStmt.executeQuery();
-                String optionText = "";
-                boolean isCorrect = false;
-                if (optRs.next()) {
-                    optionText = optRs.getString("option_text");
-                    isCorrect = optRs.getBoolean("is_correct");
-                }
+				int selectedOptionId = Integer.parseInt(group.getSelection().getActionCommand());
 
-                // save student answer
-                String insertAns = "INSERT INTO student_answers (student_id, quiz_id, question_id, option_id, answer_text, submitted_at) " +
-                                   "VALUES (?, ?, ?, ?, ?, NOW())";
-                PreparedStatement insertStmt = conn.prepareStatement(insertAns);
-                insertStmt.setInt(1, studentId);
-                insertStmt.setInt(2, quizId);
-                insertStmt.setInt(3, questionId);
-                insertStmt.setInt(4, selectedOptionId);
-                insertStmt.setString(5, optionText);
-                insertStmt.executeUpdate();
+				String optSql = "SELECT option_text, is_correct FROM options WHERE option_id = ?";
+				PreparedStatement optStmt = conn.prepareStatement(optSql);
+				optStmt.setInt(1, selectedOptionId);
+				ResultSet optRs = optStmt.executeQuery();
 
-                if (isCorrect) score++;
-            }
+				String optionText = "";
+				boolean isCorrect = false;
+				if (optRs.next()) {
+					optionText = optRs.getString("option_text");
+					isCorrect = optRs.getBoolean("is_correct");
+				}
 
-            // save overall result
-            String insertResult = "INSERT INTO results (student_id, quiz_id, score, taken_at) VALUES (?, ?, ?, NOW())";
-            PreparedStatement resultStmt = conn.prepareStatement(insertResult);
-            resultStmt.setInt(1, studentId);
-            resultStmt.setInt(2, quizId);
-            resultStmt.setInt(3, score);
-            resultStmt.executeUpdate();
+				// Save student answer
+				String insertAns = "INSERT INTO student_answers (student_id, quiz_id, question_id, option_id, answer_text, submitted_at) VALUES (?, ?, ?, ?, ?, NOW())";
+				PreparedStatement insertStmt = conn.prepareStatement(insertAns);
+				insertStmt.setInt(1, studentId);
+				insertStmt.setInt(2, quizId);
+				insertStmt.setInt(3, questionId);
+				insertStmt.setInt(4, selectedOptionId);
+				insertStmt.setString(5, optionText);
+				insertStmt.executeUpdate();
 
-            // ✅ Log quiz submission
-            logQuizAction("submitted");
+				if (isCorrect) score++;
+			}
 
-            JOptionPane.showMessageDialog(this, "✅ Quiz Submitted!\nYour Score: " + score + " / " + total);
-            dispose();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error submitting quiz: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+			// Save result
+			String insertResult = "INSERT INTO results (student_id, quiz_id, score, taken_at) VALUES (?, ?, ?, NOW())";
+			PreparedStatement resultStmt = conn.prepareStatement(insertResult);
+			resultStmt.setInt(1, studentId);
+			resultStmt.setInt(2, quizId);
+			resultStmt.setInt(3, score);
+			resultStmt.executeUpdate();
+
+			logQuizAction("submitted");
+
+			JOptionPane.showMessageDialog(this, "Quiz Submitted! Score: " + score + " / " + total);
+			dispose();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, "Error submitting quiz: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 }

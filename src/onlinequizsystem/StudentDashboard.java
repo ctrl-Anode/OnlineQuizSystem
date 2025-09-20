@@ -1,5 +1,6 @@
 package onlinequizsystem;
 
+import javax.swing.JPanel;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -9,19 +10,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class StudentDashboard extends JPanel {
+	private static final long serialVersionUID = 1L;
     private int studentId;
-    private String studentUsername;
+    //private String studentUsername;
     private DefaultListModel<String> instructorListModel;
     private DefaultListModel<String> quizListModel;
     private JList<String> quizList;
     private DefaultListModel<String> resultListModel;
     private JList<String> resultList;
-    private Main main;
+    //private Main main;
 
     public StudentDashboard(Main main, int studentId, String studentUsername) {
-        this.main = main;
+        //this.main = main;
         this.studentId = studentId;
-        this.studentUsername = studentUsername;
+        //this.studentUsername = studentUsername;
 
         setLayout(new BorderLayout());
 

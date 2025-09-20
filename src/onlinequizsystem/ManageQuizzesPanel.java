@@ -1,12 +1,13 @@
 package onlinequizsystem;
 
+import javax.swing.JPanel;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.sql.*;
 
 public class ManageQuizzesPanel extends JPanel {
+	private static final long serialVersionUID = 1L;
     private int instructorId;
     private DefaultListModel<String> quizListModel;
     private JList<String> quizList;
@@ -46,8 +47,14 @@ public class ManageQuizzesPanel extends JPanel {
         deleteBtn.addActionListener(e -> deleteQuiz());
         manageQuestionsBtn.addActionListener(e -> {
             String selected = quizList.getSelectedValue();
-            if (selected != null) new ManageQuestionsDialog(extractQuizId(selected));
-            else JOptionPane.showMessageDialog(this, "Select a quiz first.");
+            if (selected != null) {
+                int quizId = extractQuizId(selected);
+                ManageQuestionsDialog dialog = new ManageQuestionsDialog(quizId);
+                dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                dialog.setVisible(true); 
+            } else {
+                JOptionPane.showMessageDialog(this, "Select a quiz first.");
+            }
         });
     }
 

@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class LoginPanel extends JPanel {
+    private static final long serialVersionUID = 1L;
     private Main main; // Reference to Main
     private JTextField usernameOrEmailField;
     private JPasswordField passwordField;
@@ -24,35 +25,50 @@ public class LoginPanel extends JPanel {
 
         // 🔹 Form Panel
         JPanel formPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Username or Email
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        formPanel.add(new JLabel("Username or Email:"), gbc);
+        // Username or Email Label
+        GridBagConstraints gbcLabelUser = new GridBagConstraints();
+        gbcLabelUser.gridx = 0;
+        gbcLabelUser.gridy = 0;
+        gbcLabelUser.insets = new Insets(10, 10, 10, 10);
+        gbcLabelUser.anchor = GridBagConstraints.EAST;
+        formPanel.add(new JLabel("Username or Email:"), gbcLabelUser);
 
-        gbc.gridx = 1;
+        // Username or Email Field
+        GridBagConstraints gbcFieldUser = new GridBagConstraints();
+        gbcFieldUser.gridx = 1;
+        gbcFieldUser.gridy = 0;
+        gbcFieldUser.insets = new Insets(10, 10, 10, 10);
+        gbcFieldUser.fill = GridBagConstraints.HORIZONTAL;
         usernameOrEmailField = new JTextField(15);
-        formPanel.add(usernameOrEmailField, gbc);
+        formPanel.add(usernameOrEmailField, gbcFieldUser);
 
-        // Password
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        formPanel.add(new JLabel("Password:"), gbc);
+        // Password Label
+        GridBagConstraints gbcLabelPass = new GridBagConstraints();
+        gbcLabelPass.gridx = 0;
+        gbcLabelPass.gridy = 1;
+        gbcLabelPass.insets = new Insets(10, 10, 10, 10);
+        gbcLabelPass.anchor = GridBagConstraints.EAST;
+        formPanel.add(new JLabel("Password:"), gbcLabelPass);
 
-        gbc.gridx = 1;
+        // Password Field
+        GridBagConstraints gbcFieldPass = new GridBagConstraints();
+        gbcFieldPass.gridx = 1;
+        gbcFieldPass.gridy = 1;
+        gbcFieldPass.insets = new Insets(10, 10, 10, 10);
+        gbcFieldPass.fill = GridBagConstraints.HORIZONTAL;
         passwordField = new JPasswordField(15);
-        formPanel.add(passwordField, gbc);
+        formPanel.add(passwordField, gbcFieldPass);
 
         // Login Button
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
+        GridBagConstraints gbcButton = new GridBagConstraints();
+        gbcButton.gridx = 0;
+        gbcButton.gridy = 2;
+        gbcButton.gridwidth = 2;
+        gbcButton.insets = new Insets(15, 10, 10, 10);
+        gbcButton.anchor = GridBagConstraints.CENTER;
         loginButton = new JButton("Login");
-        formPanel.add(loginButton, gbc);
+        formPanel.add(loginButton, gbcButton);
 
         add(formPanel, BorderLayout.CENTER);
 
@@ -73,7 +89,6 @@ public class LoginPanel extends JPanel {
         }
 
         try (Connection conn = DBConnection.getConnection()) {
-            // SQL: allow login with either username or email
             String sql = "SELECT id, username, role FROM users WHERE (username = ? OR email = ?) AND password = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, usernameOrEmail);
@@ -89,7 +104,7 @@ public class LoginPanel extends JPanel {
                 if ("student".equalsIgnoreCase(role)) {
                     main.openStudentDashboard(userId, userName);
                 } else if ("instructor".equalsIgnoreCase(role)) {
-                    main.openInstructorDashboard(userId, userName); // Pass ID & username
+                    main.openInstructorDashboard(userId, userName);
                 } else {
                     JOptionPane.showMessageDialog(this, "Unknown role: " + role);
                 }

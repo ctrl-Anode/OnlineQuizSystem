@@ -8,10 +8,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class InstructorLogsPanel extends JPanel {
+    private static final long serialVersionUID = 1L;
     private JTable logsTable;
     private DefaultTableModel tableModel;
+    private int instructorId; // store the logged-in instructor ID
 
-    public InstructorLogsPanel() {
+    public InstructorLogsPanel(int instructorId) {
+        this.instructorId = instructorId;
+
         setLayout(new BorderLayout());
 
         JLabel title = new JLabel("📊 Quiz Activity Logs", JLabel.CENTER);
@@ -31,7 +35,7 @@ public class InstructorLogsPanel extends JPanel {
         loadLogs();
     }
 
-    /** Load quiz activity logs */
+    /** Load quiz activity logs (only for quizzes created by this instructor) */
     private void loadLogs() {
         tableModel.setRowCount(0); // clear previous
 
@@ -40,8 +44,11 @@ public class InstructorLogsPanel extends JPanel {
                          "FROM quiz_logs l " +
                          "JOIN users u ON l.user_id = u.id " +
                          "JOIN quizzes q ON l.quiz_id = q.quiz_id " +
+                         "WHERE q.created_by = ? " +   // filter by instructor
                          "ORDER BY l.timestamp DESC";
+
             PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, instructorId);  // only this instructor's quizzes
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {

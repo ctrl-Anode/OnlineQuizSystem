@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.util.Random;
 
 public class RegisterPanel extends JPanel {
+	private static final long serialVersionUID = 1L;
 
     private Main mainFrame;
     private JTextField fullnameField;
@@ -100,7 +101,7 @@ public class RegisterPanel extends JPanel {
 
     private String generateInstructorCode() {
         Random rand = new Random();
-        int code = 100000 + rand.nextInt(900000); // 6-digit
+        int code = 100000 + rand.nextInt(900000); 
         return String.valueOf(code);
     }
 }

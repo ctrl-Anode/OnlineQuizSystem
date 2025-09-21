@@ -3,6 +3,8 @@ package onlinequizsystem;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,67 +15,266 @@ public class LoginPanel extends JPanel {
     private JTextField usernameOrEmailField;
     private JPasswordField passwordField;
     private JButton loginButton;
+    private JButton backButton;
+
+    // Modern color palette
+    private static final Color PRIMARY_COLOR = new Color(41, 128, 185);
+    private static final Color SECONDARY_COLOR = new Color(52, 73, 94);
+    private static final Color ACCENT_COLOR = new Color(46, 204, 113);
+    private static final Color BACKGROUND_COLOR = new Color(247, 249, 252);
+    private static final Color CARD_COLOR = Color.WHITE;
+    private static final Color TEXT_COLOR = new Color(44, 62, 80);
+    private static final Color FIELD_BORDER = new Color(189, 195, 199);
 
     public LoginPanel(Main main) {
         this.main = main;
+        setBackground(BACKGROUND_COLOR);
         setLayout(new BorderLayout());
 
-        // 🔹 Title
-        JLabel titleLabel = new JLabel("Login", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        add(titleLabel, BorderLayout.NORTH);
+        // Create main container with proper margins
+        JPanel mainContainer = new JPanel(new BorderLayout());
+        mainContainer.setOpaque(false);
+        mainContainer.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
-        // 🔹 Form Panel
-        JPanel formPanel = new JPanel(new GridBagLayout());
+        // 🔹 Header Panel with icon and title
+        JPanel headerPanel = createHeaderPanel();
+        
+        // 🔹 Login Card Panel
+        JPanel loginCard = createLoginCard();
+        
+        // 🔹 Footer Panel with back button
+        JPanel footerPanel = createFooterPanel();
 
-        // Username or Email Label
-        GridBagConstraints gbcLabelUser = new GridBagConstraints();
-        gbcLabelUser.gridx = 0;
-        gbcLabelUser.gridy = 0;
-        gbcLabelUser.insets = new Insets(10, 10, 10, 10);
-        gbcLabelUser.anchor = GridBagConstraints.EAST;
-        formPanel.add(new JLabel("Username or Email:"), gbcLabelUser);
+        mainContainer.add(headerPanel, BorderLayout.NORTH);
+        mainContainer.add(loginCard, BorderLayout.CENTER);
+        mainContainer.add(footerPanel, BorderLayout.SOUTH);
 
-        // Username or Email Field
-        GridBagConstraints gbcFieldUser = new GridBagConstraints();
-        gbcFieldUser.gridx = 1;
-        gbcFieldUser.gridy = 0;
-        gbcFieldUser.insets = new Insets(10, 10, 10, 10);
-        gbcFieldUser.fill = GridBagConstraints.HORIZONTAL;
-        usernameOrEmailField = new JTextField(15);
-        formPanel.add(usernameOrEmailField, gbcFieldUser);
+        add(mainContainer, BorderLayout.CENTER);
+    }
 
-        // Password Label
-        GridBagConstraints gbcLabelPass = new GridBagConstraints();
-        gbcLabelPass.gridx = 0;
-        gbcLabelPass.gridy = 1;
-        gbcLabelPass.insets = new Insets(10, 10, 10, 10);
-        gbcLabelPass.anchor = GridBagConstraints.EAST;
-        formPanel.add(new JLabel("Password:"), gbcLabelPass);
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
 
-        // Password Field
-        GridBagConstraints gbcFieldPass = new GridBagConstraints();
-        gbcFieldPass.gridx = 1;
-        gbcFieldPass.gridy = 1;
-        gbcFieldPass.insets = new Insets(10, 10, 10, 10);
-        gbcFieldPass.fill = GridBagConstraints.HORIZONTAL;
-        passwordField = new JPasswordField(15);
-        formPanel.add(passwordField, gbcFieldPass);
+        // Login icon
+        JLabel iconLabel = new JLabel("🔐", SwingConstants.CENTER);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 48));
+        
+        // Title
+        JLabel titleLabel = new JLabel("Welcome Back", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titleLabel.setForeground(TEXT_COLOR);
+        
+        // Subtitle
+        JLabel subtitleLabel = new JLabel("Please sign in to your account", SwingConstants.CENTER);
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        subtitleLabel.setForeground(new Color(127, 140, 141));
+
+        JPanel titleContainer = new JPanel();
+        titleContainer.setLayout(new BoxLayout(titleContainer, BoxLayout.Y_AXIS));
+        titleContainer.setOpaque(false);
+        titleContainer.add(iconLabel);
+        titleContainer.add(Box.createRigidArea(new Dimension(0, 10)));
+        titleContainer.add(titleLabel);
+        titleContainer.add(Box.createRigidArea(new Dimension(0, 5)));
+        titleContainer.add(subtitleLabel);
+
+        headerPanel.add(titleContainer, BorderLayout.CENTER);
+        return headerPanel;
+    }
+
+    private JPanel createLoginCard() {
+        JPanel cardPanel = new JPanel();
+        cardPanel.setBackground(CARD_COLOR);
+        cardPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 221, 225), 1),
+            BorderFactory.createEmptyBorder(40, 40, 40, 40)
+        ));
+        
+        // Add subtle shadow effect
+        cardPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 2, 2, new Color(0, 0, 0, 30)),
+                BorderFactory.createMatteBorder(0, 0, 0, 0, new Color(0, 0, 0, 0))
+            ),
+            BorderFactory.createEmptyBorder(40, 40, 40, 40)
+        ));
+
+        cardPanel.setLayout(new GridBagLayout());
+
+        cardPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        // Username or Email Field with icon
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 0, 20, 0);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        JPanel userPanel = createFieldPanel("👤", "Username or Email");
+        usernameOrEmailField = (JTextField) userPanel.getComponent(1);
+        cardPanel.add(userPanel, gbc);
+
+        // Password Field with icon
+        gbc.gridy = 1;
+        gbc.insets = new Insets(0, 0, 30, 0);
+        JPanel passPanel = createPasswordFieldPanel("🔒", "Password");
+        passwordField = (JPasswordField) passPanel.getComponent(1);
+        cardPanel.add(passPanel, gbc);
 
         // Login Button
-        GridBagConstraints gbcButton = new GridBagConstraints();
-        gbcButton.gridx = 0;
-        gbcButton.gridy = 2;
-        gbcButton.gridwidth = 2;
-        gbcButton.insets = new Insets(15, 10, 10, 10);
-        gbcButton.anchor = GridBagConstraints.CENTER;
-        loginButton = new JButton("Login");
-        formPanel.add(loginButton, gbcButton);
-
-        add(formPanel, BorderLayout.CENTER);
-
-        // 🔹 Action Listener
+        gbc.gridy = 2;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        loginButton = createStyledButton("Sign In", PRIMARY_COLOR);
         loginButton.addActionListener(this::handleLogin);
+        cardPanel.add(loginButton, gbc);
+
+        return cardPanel;
+    }
+
+    private JPanel createFieldPanel(String icon, String placeholder) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        
+        // Icon label
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        iconLabel.setOpaque(true);
+        iconLabel.setBackground(new Color(236, 240, 241));
+        
+        // Text field
+        JTextField field = new JTextField();
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(FIELD_BORDER, 1),
+            BorderFactory.createEmptyBorder(12, 15, 12, 15)
+        ));
+        field.setBackground(Color.WHITE);
+        field.setForeground(TEXT_COLOR);
+        
+        // Add placeholder behavior
+        field.setText(placeholder);
+        field.setForeground(Color.GRAY);
+        field.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (field.getText().equals(placeholder)) {
+                    field.setText("");
+                    field.setForeground(TEXT_COLOR);
+                }
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                if (field.getText().isEmpty()) {
+                    field.setText(placeholder);
+                    field.setForeground(Color.GRAY);
+                }
+            }
+        });
+
+        panel.add(iconLabel, BorderLayout.WEST);
+        panel.add(field, BorderLayout.CENTER);
+        panel.setPreferredSize(new Dimension(350, 45));
+        
+        return panel;
+    }
+
+    private JPanel createPasswordFieldPanel(String icon, String placeholder) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        
+        // Icon label
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        iconLabel.setOpaque(true);
+        iconLabel.setBackground(new Color(236, 240, 241));
+        
+        // Password field
+        JPasswordField field = new JPasswordField();
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(FIELD_BORDER, 1),
+            BorderFactory.createEmptyBorder(12, 15, 12, 15)
+        ));
+        field.setBackground(Color.WHITE);
+        field.setForeground(TEXT_COLOR);
+        field.setEchoChar('●');
+
+        panel.add(iconLabel, BorderLayout.WEST);
+        panel.add(field, BorderLayout.CENTER);
+        panel.setPreferredSize(new Dimension(350, 45));
+        
+        return panel;
+    }
+
+    private JPanel createFooterPanel() {
+        JPanel footerPanel = new JPanel(new BorderLayout());
+        footerPanel.setOpaque(false);
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
+
+        // Back button
+        backButton = createStyledButton("← Back to Home", SECONDARY_COLOR);
+        backButton.addActionListener(e -> main.showPanel(Main.LANDING_PANEL));
+        
+        // Register link
+        JPanel registerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        registerPanel.setOpaque(false);
+        
+        JLabel registerLabel = new JLabel("Don't have an account? ");
+        registerLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        registerLabel.setForeground(new Color(127, 140, 141));
+        
+        JLabel registerLink = new JLabel("Sign up here");
+        registerLink.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        registerLink.setForeground(PRIMARY_COLOR);
+        registerLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        registerLink.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                main.showPanel(Main.REGISTER_PANEL);
+            }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                registerLink.setForeground(PRIMARY_COLOR.darker());
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                registerLink.setForeground(PRIMARY_COLOR);
+            }
+        });
+        
+        registerPanel.add(registerLabel);
+        registerPanel.add(registerLink);
+
+        footerPanel.add(backButton, BorderLayout.WEST);
+        footerPanel.add(registerPanel, BorderLayout.CENTER);
+
+        return footerPanel;
+    }
+
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setBackground(bgColor);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(350, 45));
+        
+        // Add hover effect
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(bgColor.brighter());
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(bgColor);
+            }
+        });
+        
+        return button;
     }
 
     /**
@@ -83,8 +284,9 @@ public class LoginPanel extends JPanel {
         String usernameOrEmail = usernameOrEmailField.getText().trim();
         String password = new String(passwordField.getPassword());
 
-        if (usernameOrEmail.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter both username/email and password.");
+        // Check for placeholder text
+        if (usernameOrEmail.equals("Username or Email") || usernameOrEmail.isEmpty() || password.isEmpty()) {
+            showStyledMessage("Please enter both username/email and password.", "Login Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -106,15 +308,19 @@ public class LoginPanel extends JPanel {
                 } else if ("instructor".equalsIgnoreCase(role)) {
                     main.openInstructorDashboard(userId, userName);
                 } else {
-                    JOptionPane.showMessageDialog(this, "Unknown role: " + role);
+                    showStyledMessage("Unknown role: " + role, "Login Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Invalid username/email or password.");
+                showStyledMessage("Invalid username/email or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
             }
 
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Login error: " + ex.getMessage());
+            showStyledMessage("Login error: " + ex.getMessage(), "Connection Error", JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
         }
+    }
+
+    private void showStyledMessage(String message, String title, int messageType) {
+        JOptionPane.showMessageDialog(this, message, title, messageType);
     }
 }

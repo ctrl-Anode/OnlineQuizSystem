@@ -1,7 +1,8 @@
 package onlinequizsystem;
 
+import javax.swing.JPanel;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.Connection;
@@ -12,38 +13,76 @@ public class InstructorResultsPanel extends JPanel {
     private static final long serialVersionUID = 1L;
     private JTable table;
     private DefaultTableModel model;
-    private int instructorId; // store instructor ID
+    private int instructorId; 
 
     public InstructorResultsPanel(int instructorId) {
         this.instructorId = instructorId;
-        setLayout(new BorderLayout());
 
-        JLabel titleLabel = new JLabel("Quiz Results", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setBorder(new EmptyBorder(10, 0, 10, 0));
-        add(titleLabel, BorderLayout.NORTH);
+        setPreferredSize(new Dimension(904, 531));
+        setBackground(new Color(245, 222, 179));
+        setLayout(new BorderLayout(0, 0));
 
-        // Table
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(new Color(205, 133, 63));
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+
+        JLabel titleLabel = new JLabel("Quiz Results", JLabel.LEFT);
+        titleLabel.setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 18));
+        titleLabel.setForeground(Color.BLACK);
+
+        titlePanel.add(titleLabel, BorderLayout.WEST);
+        add(titlePanel, BorderLayout.NORTH);
+
         model = new DefaultTableModel(new String[]{
                 "Result ID", "Student Name", "Quiz Title", "Score", "Taken At"
         }, 0);
+
         table = new JTable(model);
+        table.setFillsViewportHeight(true);
+        table.setRowHeight(28);
+        table.setShowGrid(true);
+        table.setGridColor(new Color(210, 180, 140));
+        table.setBackground(new Color(255, 250, 240));
+        table.setFont(new Font("Arial", Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 14));
+        table.getTableHeader().setBackground(new Color(255, 250, 240));
+        table.getTableHeader().setForeground(Color.BLACK);
+
+        ((DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer())
+                .setHorizontalAlignment(SwingConstants.CENTER);
+
         JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBackground(new Color(233, 150, 122));
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         add(scrollPane, BorderLayout.CENTER);
 
-        // Buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
+        buttonPanel.setBackground(new Color(205, 133, 63));
+
         JButton refreshButton = new JButton("Refresh");
         JButton viewDetailsButton = new JButton("View Details");
-        buttonPanel.add(refreshButton);
-        buttonPanel.add(viewDetailsButton);
-        add(buttonPanel, BorderLayout.SOUTH);
+        viewDetailsButton.setBackground(new Color(255, 250, 240));
+
+        styleButton(refreshButton);
+        styleButton(viewDetailsButton);
 
         refreshButton.addActionListener(e -> loadResults());
         viewDetailsButton.addActionListener(e -> openResultDetails());
 
-        // Load initial data
+        buttonPanel.add(refreshButton);
+        buttonPanel.add(viewDetailsButton);
+
+        add(buttonPanel, BorderLayout.SOUTH);
+
         loadResults();
+    }
+
+    private void styleButton(JButton button) {
+        button.setFocusPainted(false);
+        button.setBackground(new Color(255, 250, 240));
+        button.setForeground(Color.BLACK);
+        button.setFont(new Font("Arial", Font.PLAIN, 13));
+        button.setPreferredSize(new Dimension(120, 30));
     }
 
     private void loadResults() {
@@ -59,7 +98,7 @@ public class InstructorResultsPanel extends JPanel {
             stmt.setInt(1, instructorId);
             ResultSet rs = stmt.executeQuery();
 
-            model.setRowCount(0); // clear previous data
+            model.setRowCount(0); 
             while (rs.next()) {
                 model.addRow(new Object[]{
                         rs.getInt("results_id"),

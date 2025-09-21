@@ -1,13 +1,11 @@
 package onlinequizsystem;
 
+import javax.swing.JPanel;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
-//import javax.swing.table.TableCellEditor;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,31 +18,51 @@ public class ManageStudentsPanel extends JPanel {
 
     public ManageStudentsPanel(Main main, int instructorId) {
         this.instructorId = instructorId;
-        setLayout(new BorderLayout());
-        setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        // Title
-        JLabel titleLabel = new JLabel("Manage Students");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
-        add(titleLabel, BorderLayout.NORTH);
+        setBackground(new Color(245, 222, 179)); 
+        setPreferredSize(new Dimension(904, 531));
+        setLayout(new BorderLayout(0, 0));
 
-        // Table
-        tableModel = new DefaultTableModel(new Object[]{"Student ID", "Full Name", "Username", "Email", "Action"}, 0);
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(new Color(205, 133, 63)); 
+        titlePanel.setBorder(new EmptyBorder(8, 10, 8, 10));
+
+        JLabel titleLabel = new JLabel("Manage Students", JLabel.LEFT);
+        titleLabel.setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 18));
+        titleLabel.setForeground(Color.BLACK);
+        titlePanel.add(titleLabel, BorderLayout.WEST);
+
+        add(titlePanel, BorderLayout.NORTH);
+
+        tableModel = new DefaultTableModel(
+                new Object[]{"Student ID", "Full Name", "Username", "Email", "Action"}, 0
+        );
         studentTable = new JTable(tableModel);
+        studentTable.setRowHeight(28);
+        studentTable.setShowGrid(true);
+        studentTable.setGridColor(new Color(210, 180, 140));
+        studentTable.setBackground(new Color(255, 250, 240));
+        studentTable.setFont(new Font("Arial", Font.PLAIN, 13));
+        studentTable.getTableHeader().setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 14));
+        studentTable.getTableHeader().setBackground(new Color(255, 250, 240));
+        studentTable.getTableHeader().setForeground(Color.BLACK);
 
-        // Use custom renderer + editor for button column
+        ((DefaultTableCellRenderer) studentTable.getTableHeader().getDefaultRenderer())
+                .setHorizontalAlignment(SwingConstants.CENTER);
+
         studentTable.getColumn("Action").setCellRenderer(new ButtonRenderer());
         studentTable.getColumn("Action").setCellEditor(new ButtonEditor(new JCheckBox(), main));
 
         JScrollPane scrollPane = new JScrollPane(studentTable);
+        scrollPane.setBackground(new Color(233, 150, 122));
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         add(scrollPane, BorderLayout.CENTER);
 
-        // Load students
         loadStudents();
     }
 
     private void loadStudents() {
-        tableModel.setRowCount(0); // Clear existing data
+        tableModel.setRowCount(0); 
 
         try (Connection conn = DBConnection.getConnection()) {
             String sql = "SELECT s.id, s.full_name, s.username, s.email " +
@@ -61,7 +79,6 @@ public class ManageStudentsPanel extends JPanel {
                 String username = rs.getString("username");
                 String email = rs.getString("email");
 
-                // Add row with placeholder button text
                 tableModel.addRow(new Object[]{studentId, fullName, username, email, "View Details"});
             }
         } catch (Exception e) {
@@ -71,17 +88,17 @@ public class ManageStudentsPanel extends JPanel {
     }
 }
 
-// Custom button renderer
-class ButtonRenderer extends JButton implements TableCellRenderer {
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
+    private static final long serialVersionUID = 1L;
 
-	public ButtonRenderer() {
+    public ButtonRenderer() {
         setOpaque(true);
+        setBackground(new Color(255, 250, 240)); 
+        setForeground(Color.BLACK);
+        setFont(new Font("Arial", Font.PLAIN, 12));
     }
 
+    @Override
     public Component getTableCellRendererComponent(JTable table, Object value,
                                                    boolean isSelected, boolean hasFocus,
                                                    int row, int column) {
@@ -90,13 +107,9 @@ class ButtonRenderer extends JButton implements TableCellRenderer {
     }
 }
 
-// Custom button editor
 class ButtonEditor extends DefaultCellEditor {
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	protected JButton button;
+    private static final long serialVersionUID = 1L;
+    protected JButton button;
     private String label;
     private boolean clicked;
     private JTable table;
@@ -107,14 +120,14 @@ class ButtonEditor extends DefaultCellEditor {
         this.main = main;
         button = new JButton();
         button.setOpaque(true);
+        button.setBackground(new Color(205, 133, 63));
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Arial", Font.PLAIN, 12));
 
-        button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                fireEditingStopped();
-            }
-        });
+        button.addActionListener(e -> fireEditingStopped());
     }
 
+    @Override
     public Component getTableCellEditorComponent(JTable table, Object value,
                                                  boolean isSelected, int row, int column) {
         this.table = table;
@@ -124,6 +137,7 @@ class ButtonEditor extends DefaultCellEditor {
         return button;
     }
 
+    @Override
     public Object getCellEditorValue() {
         if (clicked) {
             int row = table.getSelectedRow();
@@ -147,6 +161,7 @@ class ButtonEditor extends DefaultCellEditor {
         return label;
     }
 
+    @Override
     public boolean stopCellEditing() {
         clicked = false;
         return super.stopCellEditing();

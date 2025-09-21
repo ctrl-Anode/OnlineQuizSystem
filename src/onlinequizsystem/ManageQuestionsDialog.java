@@ -1,5 +1,6 @@
 package onlinequizsystem;
 
+import java.awt.BorderLayout;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -8,65 +9,78 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class ManageQuestionsDialog extends JDialog {
-	private static final long serialVersionUID = 1L;
-	//private final JPanel contentPanel = new JPanel();
-
+    private static final long serialVersionUID = 1L;
+    //private final JPanel contentPanel = new JPanel();
     private int quizId;
 
     private DefaultListModel<String> questionListModel;
     private JList<String> questionList;
-    
-
     /**
-     * Launch for testing
-     */
-    public static void main(String[] args) {
-        try {
-            ManageQuestionsDialog dialog = new ManageQuestionsDialog(1);
-            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dialog.setVisible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		
+		try {
+			ManageQuestionsDialog dialog = new ManageQuestionsDialog(0);
+			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			dialog.setVisible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-    /**
-     * Create the dialog
-     */
-
+	/**
+	 * Create the dialog.
+	 */
     public ManageQuestionsDialog(int quizId) {
+    	setBackground(new Color(255, 250, 240));
         this.quizId = quizId;
 
-        setTitle("Manage Questions for Quiz ID: " + quizId);
+        setTitle("Manage Questions");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setSize(800, 600);
         setMinimumSize(new Dimension(700, 500));
         setModal(true);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
+        getContentPane().setLayout(new BorderLayout(10, 10));
+        getContentPane().setBackground(new Color(245, 222, 179)); 
 
-        // Questions list
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(new Color(205, 133, 63)); 
+        titlePanel.setBorder(new EmptyBorder(8, 10, 8, 8));
+        JLabel titleLabel = new JLabel("Manage Questions for Quiz ID: " + quizId);
+        titleLabel.setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 18));
+        titleLabel.setForeground(Color.BLACK);
+        titlePanel.add(titleLabel, BorderLayout.WEST);
+        getContentPane().add(titlePanel, BorderLayout.NORTH);
+
         questionListModel = new DefaultListModel<>();
         questionList = new JList<>(questionListModel);
         questionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane scrollPane = new JScrollPane(questionList);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Questions"));
-        add(scrollPane, BorderLayout.CENTER);
+        questionList.setFont(new Font("Arial", Font.PLAIN, 14));
+        questionList.setFixedCellHeight(30);
+        questionList.setBackground(new Color(255, 250, 240));
+        questionList.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // Buttons panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        JButton addButton = new JButton("Add Question");
-        JButton editButton = new JButton("Edit Question");
-        JButton deleteButton = new JButton("Delete Question");
+        JScrollPane scrollPane = new JScrollPane(questionList);
+        scrollPane.setBackground(new Color(233, 150, 122));
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Questions"));
+        getContentPane().add(scrollPane, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(new Color(205, 133, 63));
+
+        JButton addButton = createStyledButton("Add Question");
+        JButton editButton = createStyledButton("Edit Question");
+        JButton deleteButton = createStyledButton("Delete Question");
+
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
-        add(buttonPanel, BorderLayout.SOUTH);
+        getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 
-        // Load data
         loadQuestions();
-
-        // Actions
+        
         addButton.addActionListener(e -> openQuestionDialog(null));
         editButton.addActionListener(e -> {
             String selected = questionList.getSelectedValue();
@@ -79,6 +93,16 @@ public class ManageQuestionsDialog extends JDialog {
         deleteButton.addActionListener(e -> deleteQuestion());
 
         setVisible(true);
+    }
+
+    private JButton createStyledButton(String text) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Arial", Font.PLAIN, 13));
+        btn.setBackground(new Color(255, 250, 240));
+        btn.setForeground(Color.BLACK);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        return btn;
     }
 
     private void loadQuestions() {
@@ -101,19 +125,18 @@ public class ManageQuestionsDialog extends JDialog {
     }
 
     private void openQuestionDialog(Integer questionId) {
-        // Main dialog panel
         JPanel dialogPanel = new JPanel(new BorderLayout(10, 10));
         dialogPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // Question text
-        JTextArea questionTextArea = new JTextArea(5, 40);
+        JTextArea questionTextArea = new JTextArea(4, 40);
+        questionTextArea.setLineWrap(true);
+        questionTextArea.setWrapStyleWord(true);
         JScrollPane questionScroll = new JScrollPane(questionTextArea);
 
         JPanel questionPanel = new JPanel(new BorderLayout(5, 5));
         questionPanel.add(new JLabel("Question Text:"), BorderLayout.NORTH);
         questionPanel.add(questionScroll, BorderLayout.CENTER);
 
-        // Question type
         JComboBox<String> typeComboBox = new JComboBox<>(new String[]{
                 "multiple_choice", "true_false", "short_answer"
         });
@@ -124,7 +147,6 @@ public class ManageQuestionsDialog extends JDialog {
 
         dialogPanel.add(questionPanel, BorderLayout.NORTH);
 
-        // Options
         JPanel optionPanel = new JPanel();
         optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.Y_AXIS));
         JScrollPane optionScroll = new JScrollPane(optionPanel);
@@ -134,7 +156,6 @@ public class ManageQuestionsDialog extends JDialog {
         ArrayList<JTextField> optionFields = new ArrayList<>();
         ArrayList<JCheckBox> correctBoxes = new ArrayList<>();
 
-        // If editing, load existing
         if (questionId != null) {
             try (Connection conn = DBConnection.getConnection()) {
                 String sql = "SELECT question_text, question_type FROM questions WHERE question_id = ?";
@@ -165,8 +186,7 @@ public class ManageQuestionsDialog extends JDialog {
             }
         }
 
-        // Add option button
-        JButton addOptionButton = new JButton("Add Option");
+        JButton addOptionButton = createStyledButton("Add Option");
         addOptionButton.addActionListener((ActionEvent e) -> {
             JTextField optField = new JTextField(30);
             JCheckBox correctBox = new JCheckBox("Correct");
@@ -180,7 +200,6 @@ public class ManageQuestionsDialog extends JDialog {
         });
         dialogPanel.add(addOptionButton, BorderLayout.SOUTH);
 
-        // Show dialog
         int option = JOptionPane.showConfirmDialog(
                 this,
                 dialogPanel,
@@ -190,9 +209,9 @@ public class ManageQuestionsDialog extends JDialog {
         );
 
         if (option == JOptionPane.OK_OPTION) {
-            saveQuestion(questionId, questionTextArea.getText(), 
-                         typeComboBox.getSelectedItem().toString(), 
-                         optionFields, correctBoxes);
+            saveQuestion(questionId, questionTextArea.getText(),
+                    typeComboBox.getSelectedItem().toString(),
+                    optionFields, correctBoxes);
         }
     }
 

@@ -10,36 +10,32 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class StudentDashboard extends JPanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
     private int studentId;
-    //private String studentUsername;
     private DefaultListModel<String> instructorListModel;
     private DefaultListModel<String> quizListModel;
     private JList<String> quizList;
     private DefaultListModel<String> resultListModel;
     private JList<String> resultList;
-    //private Main main;
 
     public StudentDashboard(Main main, int studentId, String studentUsername) {
-        //this.main = main;
+        setPreferredSize(new Dimension(904, 531));
         this.studentId = studentId;
-        //this.studentUsername = studentUsername;
 
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(0, 0));
 
-        // 🔹 Top Bar
         JPanel topBar = new JPanel(new BorderLayout());
-        topBar.setBackground(new Color(70, 130, 180));
+        topBar.setBackground(new Color(210, 180, 140));
         topBar.setPreferredSize(new Dimension(800, 50));
 
-        JLabel titleLabel = new JLabel("Student Dashboard");
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        JLabel titleLabel = new JLabel("Online Quiz");
+        titleLabel.setForeground(Color.BLACK);
+        titleLabel.setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 20));
         titleLabel.setBorder(new EmptyBorder(0, 10, 0, 0));
 
         JLabel userLabel = new JLabel("Logged in: " + studentUsername);
-        userLabel.setForeground(Color.WHITE);
-        userLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        userLabel.setForeground(Color.BLACK);
+        userLabel.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 15));
 
         JButton logoutButton = new JButton("Logout");
         logoutButton.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -56,72 +52,84 @@ public class StudentDashboard extends JPanel {
 
         topBar.add(titleLabel, BorderLayout.WEST);
         topBar.add(rightPanel, BorderLayout.EAST);
-
         add(topBar, BorderLayout.NORTH);
 
-        // 🔹 Main Panel
         JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(new Color(245, 222, 179));
+        mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        add(mainPanel, BorderLayout.CENTER);
 
-        // Join Instructor Section
         JPanel joinPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        joinPanel.setBackground(new Color(222, 184, 135));
         JLabel codeLabel = new JLabel("Enter Instructor Code:");
+        codeLabel.setFont(new Font("Arial", Font.BOLD, 13));
         JTextField codeField = new JTextField(10);
+        codeField.setBackground(Color.WHITE);
         JButton joinButton = new JButton("Join Instructor");
+        joinButton.setBackground(new Color(255, 235, 205));
 
         joinPanel.add(codeLabel);
         joinPanel.add(codeField);
         joinPanel.add(joinButton);
+        mainPanel.add(joinPanel, BorderLayout.NORTH);
 
-        // Instructor List
+        JPanel contentArea = new JPanel(new GridLayout(1, 3, 15, 0));
+        contentArea.setFont(new Font("Arial", Font.PLAIN, 10));
+        contentArea.setBackground(new Color(245, 222, 179));
+        contentArea.setBorder(new EmptyBorder(10, 0, 0, 0));
+        mainPanel.add(contentArea, BorderLayout.CENTER);
+
+        JPanel instructorPanel = new JPanel(new BorderLayout(10, 10));
+        instructorPanel.setBackground(new Color(233, 150, 122));
+        JLabel instructorHeader = new JLabel("My Instructors", SwingConstants.CENTER);
+        instructorHeader.setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 16));
+        instructorPanel.add(instructorHeader, BorderLayout.NORTH);
+
         instructorListModel = new DefaultListModel<>();
         JList<String> instructorList = new JList<>(instructorListModel);
-        JScrollPane instructorScroll = new JScrollPane(instructorList);
-        instructorScroll.setBorder(BorderFactory.createTitledBorder("My Instructors"));
+        instructorList.setBackground(new Color(255, 250, 240));
+        instructorPanel.add(new JScrollPane(instructorList), BorderLayout.CENTER);
 
-        // Quiz List
+        JPanel quizPanel = new JPanel(new BorderLayout(10, 10));
+        quizPanel.setBackground(new Color(233, 150, 122));
+        JLabel quizHeader = new JLabel("Available Quizzes", SwingConstants.CENTER);
+        quizHeader.setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 16));
+        quizPanel.add(quizHeader, BorderLayout.NORTH);
+
         quizListModel = new DefaultListModel<>();
         quizList = new JList<>(quizListModel);
-        JScrollPane quizScroll = new JScrollPane(quizList);
-        quizScroll.setBorder(BorderFactory.createTitledBorder("Available Quizzes"));
+        quizList.setBackground(new Color(255, 250, 240));
+        quizPanel.add(new JScrollPane(quizList), BorderLayout.CENTER);
 
-        JButton takeQuizButton = new JButton("Take Selected Quiz");
-
-        JPanel quizPanel = new JPanel(new BorderLayout());
-        quizPanel.add(quizScroll, BorderLayout.CENTER);
+        JButton takeQuizButton = new JButton("Take Quiz");
+        takeQuizButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        takeQuizButton.setBackground(new Color(255, 250, 240));
         quizPanel.add(takeQuizButton, BorderLayout.SOUTH);
 
-        // Results List
+        JPanel resultPanel = new JPanel(new BorderLayout(10, 10));
+        resultPanel.setBackground(new Color(233, 150, 122));
+        JLabel resultHeader = new JLabel("My Quiz Results", SwingConstants.CENTER);
+        resultHeader.setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 16));
+        resultPanel.add(resultHeader, BorderLayout.NORTH);
+
         resultListModel = new DefaultListModel<>();
         resultList = new JList<>(resultListModel);
-        JScrollPane resultScroll = new JScrollPane(resultList);
-        resultScroll.setBorder(BorderFactory.createTitledBorder("My Quiz Results"));
+        resultList.setBackground(new Color(255, 250, 240));
+        resultPanel.add(new JScrollPane(resultList), BorderLayout.CENTER);
 
-        JButton viewResultButton = new JButton("View Selected Result");
-
-        JPanel resultPanel = new JPanel(new BorderLayout());
-        resultPanel.add(resultScroll, BorderLayout.CENTER);
+        JButton viewResultButton = new JButton("View Result");
+        viewResultButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        viewResultButton.setBackground(new Color(255, 250, 240));
         resultPanel.add(viewResultButton, BorderLayout.SOUTH);
 
-        // Split: Quizzes + Results
-        JSplitPane centerSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, quizPanel, resultPanel);
-        centerSplit.setDividerLocation(400);
+        contentArea.add(instructorPanel);
+        contentArea.add(quizPanel);
+        contentArea.add(resultPanel);
 
-        // Split: Instructors + (Quizzes + Results)
-        JSplitPane mainSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, instructorScroll, centerSplit);
-        mainSplit.setDividerLocation(250);
-
-        mainPanel.add(joinPanel, BorderLayout.NORTH);
-        mainPanel.add(mainSplit, BorderLayout.CENTER);
-
-        add(mainPanel, BorderLayout.CENTER);
-
-        // Load data
         loadInstructors();
         loadQuizzes();
         loadResults();
 
-        // 🔹 Button Action: Join Instructor
         joinButton.addActionListener((ActionEvent e) -> {
             String code = codeField.getText().trim();
             if (code.isEmpty()) {
@@ -131,7 +139,6 @@ public class StudentDashboard extends JPanel {
             joinInstructor(code);
         });
 
-        // 🔹 Button Action: Take Quiz
         takeQuizButton.addActionListener(e -> {
             int selectedIndex = quizList.getSelectedIndex();
             if (selectedIndex == -1) {
@@ -162,10 +169,9 @@ public class StudentDashboard extends JPanel {
             }
 
             new TakeQuizDialog(quizId, studentId).setVisible(true);
-            loadResults(); // refresh after taking quiz
+            loadResults();
         });
 
-        // 🔹 Button Action: View Result
         viewResultButton.addActionListener(e -> {
             int selectedIndex = resultList.getSelectedIndex();
             if (selectedIndex == -1) {
@@ -180,7 +186,6 @@ public class StudentDashboard extends JPanel {
         });
     }
 
-    // Load instructors
     private void loadInstructors() {
         try (Connection conn = DBConnection.getConnection()) {
             String sql = "SELECT u.full_name, u.instructor_code " +
@@ -202,7 +207,6 @@ public class StudentDashboard extends JPanel {
         }
     }
 
-    // Load quizzes
     private void loadQuizzes() {
         try (Connection conn = DBConnection.getConnection()) {
             String sql = "SELECT q.quiz_id, q.title, u.full_name " +
@@ -226,7 +230,6 @@ public class StudentDashboard extends JPanel {
         }
     }
 
-    // Load results
     private void loadResults() {
         try (Connection conn = DBConnection.getConnection()) {
             String sql = "SELECT r.quiz_id, q.title, r.score, r.taken_at " +
@@ -250,7 +253,6 @@ public class StudentDashboard extends JPanel {
         }
     }
 
-    // Join instructor
     private void joinInstructor(String code) {
         try (Connection conn = DBConnection.getConnection()) {
             String sql = "SELECT id, full_name FROM users WHERE instructor_code = ? AND role = 'instructor'";

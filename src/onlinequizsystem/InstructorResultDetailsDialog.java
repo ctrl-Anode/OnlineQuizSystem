@@ -1,18 +1,13 @@
 package onlinequizsystem;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.JOptionPane;
+import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 
 public class InstructorResultDetailsDialog extends JDialog {
 
@@ -22,62 +17,68 @@ public class InstructorResultDetailsDialog extends JDialog {
     private DefaultTableModel model;
     private int instructorId;
 
-    /**
-     * Launch the application (for testing only)
-     */
-    public static void main(String[] args) {
-        try {
-            InstructorResultDetailsDialog dialog = new InstructorResultDetailsDialog(
-                    1, "John Doe", "Sample Quiz", 2
-            );
-            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dialog.setVisible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Create the dialog.
-     */
     public InstructorResultDetailsDialog(int resultId, String studentName, String quizTitle, int instructorId) {
         this.instructorId = instructorId;
 
         setTitle("Result Details - " + studentName + " | Quiz: " + quizTitle);
-        setBounds(100, 100, 800, 500);
+        setBounds(100, 100, 900, 550);
         setLocationRelativeTo(null);
         setModal(true);
         getContentPane().setLayout(new BorderLayout());
 
-        contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(new Color(205, 133, 63));
+        titlePanel.setBorder(new EmptyBorder(8, 10, 8, 10));
+
+        JLabel titleLabel = new JLabel("Student Answers for " + quizTitle, JLabel.LEFT);
+        titleLabel.setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 18));
+        titleLabel.setForeground(Color.BLACK);
+
+        titlePanel.add(titleLabel, BorderLayout.WEST);
+        getContentPane().add(titlePanel, BorderLayout.NORTH);
+
+        contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         contentPanel.setLayout(new BorderLayout(0, 0));
+        contentPanel.setBackground(new Color(245, 222, 179));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
 
-        // Table model
         model = new DefaultTableModel(new String[]{
                 "Question", "Option Choices", "Student Answer", "Correct Answer"
         }, 0);
+
         table = new JTable(model);
+        table.setFillsViewportHeight(true);
+        table.setRowHeight(28);
+        table.setShowGrid(true);
+        table.setGridColor(new Color(210, 180, 140));
+        table.setBackground(new Color(255, 250, 240));
+        table.setFont(new Font("Arial", Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 14));
+        table.getTableHeader().setBackground(new Color(255, 250, 240));
+        table.getTableHeader().setForeground(Color.BLACK);
+
+        ((DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer())
+                .setHorizontalAlignment(SwingConstants.CENTER);
+
         JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
         contentPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Button panel
-        JPanel buttonPane = new JPanel();
-        buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        getContentPane().add(buttonPane, BorderLayout.SOUTH);
+        JPanel buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPane.setBackground(new Color(245, 222, 179));
 
         JButton closeButton = new JButton("Close");
+        closeButton.setBackground(new Color(255, 250, 240));
+        closeButton.setFont(new Font("Arial", Font.PLAIN, 13));
         closeButton.addActionListener(e -> dispose());
         buttonPane.add(closeButton);
+
+        getContentPane().add(buttonPane, BorderLayout.SOUTH);
         getRootPane().setDefaultButton(closeButton);
 
-        // Load results
         loadResultDetails(resultId);
     }
 
-    /**
-     * Load quiz result details for this instructor
-     */
     private void loadResultDetails(int resultId) {
         try (Connection conn = DBConnection.getConnection()) {
             String sql = "SELECT q.question_text, " +
@@ -96,18 +97,23 @@ public class InstructorResultDetailsDialog extends JDialog {
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, resultId);
-            stmt.setInt(2, instructorId); // enforce ownership
+            stmt.setInt(2, instructorId); 
             ResultSet rs = stmt.executeQuery();
 
             model.setRowCount(0);
             boolean found = false;
+
             while (rs.next()) {
                 found = true;
+
+                String studentAnswer = rs.getString("student_answer");
+                String correctAnswer = rs.getString("correct_answer");
+
                 model.addRow(new Object[]{
                         rs.getString("question_text"),
                         rs.getString("options_list"),
-                        rs.getString("student_answer") != null ? rs.getString("student_answer") : "(No Answer)",
-                        rs.getString("correct_answer")
+                        studentAnswer != null ? studentAnswer : "(No Answer)",
+                        correctAnswer
                 });
             }
 

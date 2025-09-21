@@ -7,37 +7,55 @@ import java.awt.*;
 import java.sql.*;
 
 public class ManageQuizzesPanel extends JPanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
     private int instructorId;
     private DefaultListModel<String> quizListModel;
     private JList<String> quizList;
 
     public ManageQuizzesPanel(int instructorId) {
         this.instructorId = instructorId;
+        setPreferredSize(new Dimension(904, 531));
         setLayout(new BorderLayout());
-        setBorder(new EmptyBorder(10, 10, 10, 10));
+        setBackground(new Color(245, 222, 179)); 
+        
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(new Color(205, 133, 63)); 
+        titlePanel.setBorder(new EmptyBorder(8, 10, 8, 10));
+        JLabel titleLabel = new JLabel("Manage Quizzes", JLabel.LEFT);
+        titleLabel.setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 18));
+        titleLabel.setForeground(Color.BLACK);
+        titlePanel.add(titleLabel, BorderLayout.WEST);
+        add(titlePanel, BorderLayout.NORTH);
 
         quizListModel = new DefaultListModel<>();
         quizList = new JList<>(quizListModel);
+        quizList.setFont(new Font("Arial", Font.PLAIN, 14));
+        quizList.setFixedCellHeight(30);
+        quizList.setBackground(new Color(255, 250, 240));
+        quizList.setBorder(new EmptyBorder(10, 10, 10, 10));
+
         JScrollPane scrollPane = new JScrollPane(quizList);
+        scrollPane.setBackground(new Color(233, 150, 122));
         scrollPane.setBorder(BorderFactory.createTitledBorder("Your Quizzes"));
         add(scrollPane, BorderLayout.CENTER);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        JButton createBtn = new JButton("Create Quiz");
-        JButton editBtn = new JButton("Edit Quiz");
-        JButton deleteBtn = new JButton("Delete Quiz");
-        JButton manageQuestionsBtn = new JButton("Manage Questions");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(new Color(205, 133, 63));
+
+        JButton createBtn = createStyledButton("Create Quiz");
+        JButton editBtn = createStyledButton("Edit Quiz");
+        JButton deleteBtn = createStyledButton("Delete Quiz");
+        JButton manageQuestionsBtn = createStyledButton("Manage Questions");
 
         buttonPanel.add(createBtn);
         buttonPanel.add(editBtn);
         buttonPanel.add(deleteBtn);
         buttonPanel.add(manageQuestionsBtn);
+
         add(buttonPanel, BorderLayout.SOUTH);
 
         loadQuizzes();
 
-        // Button actions
         createBtn.addActionListener(e -> openQuizDialog(null));
         editBtn.addActionListener(e -> {
             String selected = quizList.getSelectedValue();
@@ -51,11 +69,21 @@ public class ManageQuizzesPanel extends JPanel {
                 int quizId = extractQuizId(selected);
                 ManageQuestionsDialog dialog = new ManageQuestionsDialog(quizId);
                 dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                dialog.setVisible(true); 
+                dialog.setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(this, "Select a quiz first.");
             }
         });
+    }
+
+    private JButton createStyledButton(String text) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Arial", Font.PLAIN, 13));
+        btn.setBackground(new Color(255, 250, 240)); 
+        btn.setForeground(Color.BLACK);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        return btn;
     }
 
     private void loadQuizzes() {
@@ -96,12 +124,13 @@ public class ManageQuizzesPanel extends JPanel {
             }
         }
 
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.add(new JLabel("Title:"), BorderLayout.NORTH);
-        panel.add(titleField, BorderLayout.CENTER);
-        panel.add(new JScrollPane(descArea), BorderLayout.SOUTH);
+        JPanel formPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        formPanel.add(new JLabel("Title:"));
+        formPanel.add(titleField);
+        formPanel.add(new JLabel("Description:"));
+        formPanel.add(new JScrollPane(descArea));
 
-        int option = JOptionPane.showConfirmDialog(this, panel,
+        int option = JOptionPane.showConfirmDialog(this, formPanel,
                 quizId == null ? "Create Quiz" : "Edit Quiz",
                 JOptionPane.OK_CANCEL_OPTION);
 

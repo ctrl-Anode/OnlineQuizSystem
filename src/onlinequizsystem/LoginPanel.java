@@ -1,84 +1,85 @@
 package onlinequizsystem;
 
+import javax.swing.JPanel;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.awt.event.ActionListener;
 
 public class LoginPanel extends JPanel {
     private static final long serialVersionUID = 1L;
-    private Main main; // Reference to Main
+    private Main main; 
     private JTextField usernameOrEmailField;
     private JPasswordField passwordField;
     private JButton loginButton;
+    private JButton backButton;
 
     public LoginPanel(Main main) {
+    	setPreferredSize(new Dimension(904, 531));
         this.main = main;
-        setLayout(new BorderLayout());
+        setLayout(null); 
+        setBackground(new Color(245, 222, 179));
 
-        // 🔹 Title
-        JLabel titleLabel = new JLabel("Login", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        add(titleLabel, BorderLayout.NORTH);
+        JLabel titleLabel = new JLabel("Online Quiz System", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Baskerville Old Face", Font.BOLD, 30));
+        titleLabel.setBounds(139, 23, 600, 40);
+        add(titleLabel);
 
-        // 🔹 Form Panel
-        JPanel formPanel = new JPanel(new GridBagLayout());
+        JLabel lblSignIn = new JLabel("Sign In", SwingConstants.CENTER);
+        lblSignIn.setFont(new Font("Arial", Font.BOLD, 25));
+        lblSignIn.setBounds(139, 113, 600, 30);
+        add(lblSignIn);
 
-        // Username or Email Label
-        GridBagConstraints gbcLabelUser = new GridBagConstraints();
-        gbcLabelUser.gridx = 0;
-        gbcLabelUser.gridy = 0;
-        gbcLabelUser.insets = new Insets(10, 10, 10, 10);
-        gbcLabelUser.anchor = GridBagConstraints.EAST;
-        formPanel.add(new JLabel("Username or Email:"), gbcLabelUser);
+        JLabel label = new JLabel("Username or Email:");
+        label.setFont(new Font("Arial", Font.BOLD, 12));
+        label.setBounds(250, 252, 150, 25);
+        add(label);
 
-        // Username or Email Field
-        GridBagConstraints gbcFieldUser = new GridBagConstraints();
-        gbcFieldUser.gridx = 1;
-        gbcFieldUser.gridy = 0;
-        gbcFieldUser.insets = new Insets(10, 10, 10, 10);
-        gbcFieldUser.fill = GridBagConstraints.HORIZONTAL;
         usernameOrEmailField = new JTextField(15);
-        formPanel.add(usernameOrEmailField, gbcFieldUser);
+        usernameOrEmailField.setFont(new Font("Arial", Font.PLAIN, 12));
+        usernameOrEmailField.setBounds(400, 252, 200, 25);
+        add(usernameOrEmailField);
 
-        // Password Label
-        GridBagConstraints gbcLabelPass = new GridBagConstraints();
-        gbcLabelPass.gridx = 0;
-        gbcLabelPass.gridy = 1;
-        gbcLabelPass.insets = new Insets(10, 10, 10, 10);
-        gbcLabelPass.anchor = GridBagConstraints.EAST;
-        formPanel.add(new JLabel("Password:"), gbcLabelPass);
+        JLabel label_1 = new JLabel("Password:");
+        label_1.setFont(new Font("Arial", Font.BOLD, 12));
+        label_1.setBounds(250, 295, 150, 25);
+        add(label_1);
 
-        // Password Field
-        GridBagConstraints gbcFieldPass = new GridBagConstraints();
-        gbcFieldPass.gridx = 1;
-        gbcFieldPass.gridy = 1;
-        gbcFieldPass.insets = new Insets(10, 10, 10, 10);
-        gbcFieldPass.fill = GridBagConstraints.HORIZONTAL;
         passwordField = new JPasswordField(15);
-        formPanel.add(passwordField, gbcFieldPass);
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 12));
+        passwordField.setBounds(400, 295, 200, 25);
+        add(passwordField);
 
-        // Login Button
-        GridBagConstraints gbcButton = new GridBagConstraints();
-        gbcButton.gridx = 0;
-        gbcButton.gridy = 2;
-        gbcButton.gridwidth = 2;
-        gbcButton.insets = new Insets(15, 10, 10, 10);
-        gbcButton.anchor = GridBagConstraints.CENTER;
         loginButton = new JButton("Login");
-        formPanel.add(loginButton, gbcButton);
+        loginButton.setFont(new Font("Arial", Font.BOLD, 12));
+        loginButton.setBounds(400, 355, 100, 30);
+        add(loginButton);
 
-        add(formPanel, BorderLayout.CENTER);
+        backButton = new JButton("Back");
+        backButton.setFont(new Font("Arial", Font.PLAIN, 9));
+        backButton.addActionListener(new ActionListener() {
 
-        // 🔹 Action Listener
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+        });
+        backButton.setBounds(817, 10, 57, 25);
+        add(backButton);
+
+        JLabel footer = new JLabel("BCRV 2025 Online Quiz System", SwingConstants.CENTER);
+        footer.setFont(new Font("Arial", Font.BOLD | Font.ITALIC, 12));
+        footer.setBounds(247, 444, 400, 30);
+        add(footer);
+
         loginButton.addActionListener(this::handleLogin);
+        backButton.addActionListener(e -> main.showPanel(Main.LANDING_PANEL));
     }
 
-    /**
-     * Handle login button click
-     */
     private void handleLogin(ActionEvent e) {
         String usernameOrEmail = usernameOrEmailField.getText().trim();
         String password = new String(passwordField.getPassword());
@@ -93,7 +94,7 @@ public class LoginPanel extends JPanel {
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, usernameOrEmail);
             stmt.setString(2, usernameOrEmail);
-            stmt.setString(3, password); // Use hashed passwords in production
+            stmt.setString(3, password); 
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {

@@ -4,18 +4,30 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.*;
 import java.util.ArrayList;
 
 public class ManageQuestionsDialog extends JDialog {
-	private static final long serialVersionUID = 1L;
-	//private final JPanel contentPanel = new JPanel();
+    private static final long serialVersionUID = 1L;
+    
+    // Modern color palette
+    private static final Color PRIMARY_COLOR = new Color(41, 128, 185);
+    private static final Color SECONDARY_COLOR = new Color(52, 73, 94);
+    private static final Color SUCCESS_COLOR = new Color(46, 204, 113);
+    private static final Color DANGER_COLOR = new Color(231, 76, 60);
+    private static final Color WARNING_COLOR = new Color(243, 156, 18);
+    private static final Color BACKGROUND_COLOR = new Color(247, 249, 252);
+    private static final Color CARD_COLOR = Color.WHITE;
+    private static final Color TEXT_COLOR = new Color(44, 62, 80);
+    private static final Color MUTED_COLOR = new Color(127, 140, 141);
+    private static final Color BORDER_COLOR = new Color(220, 221, 225);
 
     private int quizId;
-
     private DefaultListModel<String> questionListModel;
     private JList<String> questionList;
-    
+    private JLabel questionCountLabel;
 
     /**
      * Launch for testing
@@ -37,34 +49,169 @@ public class ManageQuestionsDialog extends JDialog {
     public ManageQuestionsDialog(int quizId) {
         this.quizId = quizId;
 
-        setTitle("Manage Questions for Quiz ID: " + quizId);
+        setTitle("📝 Manage Questions");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(800, 600);
-        setMinimumSize(new Dimension(700, 500));
+        setSize(900, 700);
+        setMinimumSize(new Dimension(800, 600));
         setModal(true);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
+        setBackground(BACKGROUND_COLOR);
+        getContentPane().setLayout(new BorderLayout());
 
-        // Questions list
+        // Header Panel
+        JPanel headerPanel = createHeaderPanel();
+        getContentPane().add(headerPanel, BorderLayout.NORTH);
+
+        // Main Content Panel
+        JPanel contentPanel = createContentPanel();
+        getContentPane().add(contentPanel, BorderLayout.CENTER);
+
+        // Footer Panel
+        JPanel footerPanel = createFooterPanel();
+        getContentPane().add(footerPanel, BorderLayout.SOUTH);
+
+        loadQuestions();
+        setVisible(true);
+    }
+
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(PRIMARY_COLOR);
+        headerPanel.setBorder(new EmptyBorder(25, 30, 25, 30));
+
+        // Left side - Title and subtitle
+        JPanel titlePanel = new JPanel();
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.setOpaque(false);
+
+        JLabel titleLabel = new JLabel("📝 Question Manager");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel subtitleLabel = new JLabel("Quiz ID: " + quizId);
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        subtitleLabel.setForeground(new Color(255, 255, 255, 180));
+        subtitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        titlePanel.add(titleLabel);
+        titlePanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        titlePanel.add(subtitleLabel);
+
+        // Right side - Question count
+        questionCountLabel = new JLabel("0 Questions");
+        questionCountLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        questionCountLabel.setForeground(Color.WHITE);
+        questionCountLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        headerPanel.add(titlePanel, BorderLayout.WEST);
+        headerPanel.add(questionCountLabel, BorderLayout.EAST);
+
+        return headerPanel;
+    }
+
+    private JPanel createContentPanel() {
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(BACKGROUND_COLOR);
+        contentPanel.setBorder(new EmptyBorder(20, 25, 10, 25));
+
+        // Create styled question list
         questionListModel = new DefaultListModel<>();
         questionList = new JList<>(questionListModel);
+        
+        // Style the list
+        questionList.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        questionList.setBackground(CARD_COLOR);
+        questionList.setSelectionBackground(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 30));
+        questionList.setSelectionForeground(TEXT_COLOR);
+        questionList.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        questionList.setFixedCellHeight(60);
         questionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane scrollPane = new JScrollPane(questionList);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Questions"));
-        add(scrollPane, BorderLayout.CENTER);
+        
+        // Custom cell renderer for better styling
+        questionList.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                
+                setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
+                    BorderFactory.createEmptyBorder(15, 15, 15, 15)
+                ));
+                
+                if (!isSelected) {
+                    setBackground(index % 2 == 0 ? CARD_COLOR : new Color(249, 250, 251));
+                }
+                
+                setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                setForeground(TEXT_COLOR);
+                
+                // Format the display text
+                if (value != null) {
+                    String text = value.toString();
+                    if (text.contains(":")) {
+                        String[] parts = text.split(":", 2);
+                        setText("<html><div style='width: 700px;'><b>Q" + parts[0] + ":</b> " + parts[1].trim() + "</div></html>");
+                    }
+                }
+                
+                return c;
+            }
+        });
 
-        // Buttons panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        JButton addButton = new JButton("Add Question");
-        JButton editButton = new JButton("Edit Question");
-        JButton deleteButton = new JButton("Delete Question");
+        // Container with card styling
+        JPanel listContainer = new JPanel(new BorderLayout());
+        listContainer.setBackground(CARD_COLOR);
+        listContainer.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
+        ));
+
+        // Header for the list
+        JPanel listHeaderPanel = new JPanel(new BorderLayout());
+        listHeaderPanel.setBackground(SECONDARY_COLOR);
+        listHeaderPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+
+        JLabel listHeaderLabel = new JLabel("Questions");
+        listHeaderLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        listHeaderLabel.setForeground(Color.WHITE);
+
+        listHeaderPanel.add(listHeaderLabel, BorderLayout.WEST);
+        listContainer.add(listHeaderPanel, BorderLayout.NORTH);
+
+        JScrollPane scrollPane = new JScrollPane(questionList);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(CARD_COLOR);
+        scrollPane.setBackground(CARD_COLOR);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        listContainer.add(scrollPane, BorderLayout.CENTER);
+        contentPanel.add(listContainer, BorderLayout.CENTER);
+
+        return contentPanel;
+    }
+
+    private JPanel createFooterPanel() {
+        JPanel footerPanel = new JPanel(new BorderLayout());
+        footerPanel.setBackground(BACKGROUND_COLOR);
+        footerPanel.setBorder(new EmptyBorder(15, 25, 20, 25));
+
+        // Action buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        buttonPanel.setOpaque(false);
+
+        JButton addButton = createStyledButton("➕ Add Question", SUCCESS_COLOR);
+        JButton editButton = createStyledButton("✏️ Edit Question", WARNING_COLOR);
+        JButton deleteButton = createStyledButton("🗑️ Delete Question", DANGER_COLOR);
+
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
-        add(buttonPanel, BorderLayout.SOUTH);
 
-        // Load data
-        loadQuestions();
+        // Close button
+        JButton closeButton = createStyledButton("✖️ Close", SECONDARY_COLOR);
+        closeButton.addActionListener(e -> dispose());
 
         // Actions
         addButton.addActionListener(e -> openQuestionDialog(null));
@@ -73,26 +220,61 @@ public class ManageQuestionsDialog extends JDialog {
             if (selected != null) {
                 openQuestionDialog(extractQuestionId(selected));
             } else {
-                JOptionPane.showMessageDialog(this, "Select a question to edit.");
+                showStyledMessage("Please select a question to edit.", "No Selection", JOptionPane.WARNING_MESSAGE);
             }
         });
         deleteButton.addActionListener(e -> deleteQuestion());
 
-        setVisible(true);
+        footerPanel.add(buttonPanel, BorderLayout.CENTER);
+        footerPanel.add(closeButton, BorderLayout.EAST);
+
+        return footerPanel;
+    }
+
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setBackground(bgColor);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(160, 45));
+
+        // Hover effect
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(bgColor.brighter());
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(bgColor);
+            }
+        });
+
+        return button;
     }
 
     private void loadQuestions() {
         questionListModel.clear();
         try (Connection conn = DBConnection.getConnection()) {
-            String sql = "SELECT question_id, question_text FROM questions WHERE quiz_id = ?";
+            String sql = "SELECT question_id, question_text FROM questions WHERE quiz_id = ? ORDER BY question_id";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, quizId);
             ResultSet rs = stmt.executeQuery();
+            
+            int count = 0;
             while (rs.next()) {
                 questionListModel.addElement(rs.getInt("question_id") + ": " + rs.getString("question_text"));
+                count++;
             }
+            
+            // Update question count
+            questionCountLabel.setText(count + " Question" + (count != 1 ? "s" : ""));
+            
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error loading questions: " + e.getMessage());
+            showStyledMessage("Error loading questions: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -101,40 +283,118 @@ public class ManageQuestionsDialog extends JDialog {
     }
 
     private void openQuestionDialog(Integer questionId) {
-        // Main dialog panel
-        JPanel dialogPanel = new JPanel(new BorderLayout(10, 10));
-        dialogPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        // Create modern dialog
+        JDialog dialog = new JDialog(this, questionId == null ? "Add New Question" : "Edit Question", true);
+        dialog.setSize(750, 650);
+        dialog.setLocationRelativeTo(this);
+        dialog.getContentPane().setLayout(new BorderLayout());
+        dialog.getContentPane().setBackground(BACKGROUND_COLOR);
 
-        // Question text
-        JTextArea questionTextArea = new JTextArea(5, 40);
+        // Header
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(PRIMARY_COLOR);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
+
+        JLabel titleLabel = new JLabel(questionId == null ? "➕ Add New Question" : "✏️ Edit Question");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        titleLabel.setForeground(Color.WHITE);
+
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+        dialog.add(headerPanel, BorderLayout.NORTH);
+
+        // Main content panel with proper layout
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBackground(CARD_COLOR);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
+
+        // Question text section
+        JPanel questionSection = new JPanel();
+        questionSection.setLayout(new BoxLayout(questionSection, BoxLayout.Y_AXIS));
+        questionSection.setOpaque(false);
+        questionSection.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel questionLabel = new JLabel("Question Text:");
+        questionLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        questionLabel.setForeground(TEXT_COLOR);
+        questionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JTextArea questionTextArea = new JTextArea(4, 50);
+        questionTextArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        questionTextArea.setBackground(Color.WHITE);
+        questionTextArea.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+        questionTextArea.setLineWrap(true);
+        questionTextArea.setWrapStyleWord(true);
+
         JScrollPane questionScroll = new JScrollPane(questionTextArea);
+        questionScroll.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
+        questionScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+        questionScroll.setMaximumSize(new Dimension(650, 120));
+        questionScroll.setPreferredSize(new Dimension(650, 120));
 
-        JPanel questionPanel = new JPanel(new BorderLayout(5, 5));
-        questionPanel.add(new JLabel("Question Text:"), BorderLayout.NORTH);
-        questionPanel.add(questionScroll, BorderLayout.CENTER);
+        questionSection.add(questionLabel);
+        questionSection.add(Box.createRigidArea(new Dimension(0, 8)));
+        questionSection.add(questionScroll);
 
-        // Question type
+        // Question type section
+        JPanel typeSection = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        typeSection.setOpaque(false);
+        typeSection.setAlignmentX(Component.LEFT_ALIGNMENT);
+        typeSection.setMaximumSize(new Dimension(650, 40));
+
+        JLabel typeLabel = new JLabel("Question Type:");
+        typeLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        typeLabel.setForeground(TEXT_COLOR);
+
         JComboBox<String> typeComboBox = new JComboBox<>(new String[]{
                 "multiple_choice", "true_false", "short_answer"
         });
-        JPanel typePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        typePanel.add(new JLabel("Question Type:"));
-        typePanel.add(typeComboBox);
-        questionPanel.add(typePanel, BorderLayout.SOUTH);
+        typeComboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        typeComboBox.setBackground(Color.WHITE);
+        typeComboBox.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
 
-        dialogPanel.add(questionPanel, BorderLayout.NORTH);
+        typeSection.add(typeLabel);
+        typeSection.add(Box.createRigidArea(new Dimension(15, 0)));
+        typeSection.add(typeComboBox);
 
-        // Options
+        // Options section with proper layout
+        JPanel optionContainer = new JPanel();
+        optionContainer.setLayout(new BoxLayout(optionContainer, BoxLayout.Y_AXIS));
+        optionContainer.setOpaque(false);
+        optionContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel optionsLabel = new JLabel("Answer Options:");
+        optionsLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        optionsLabel.setForeground(TEXT_COLOR);
+        optionsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JPanel optionPanel = new JPanel();
         optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.Y_AXIS));
+        optionPanel.setBackground(new Color(249, 250, 251));
+        optionPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
         JScrollPane optionScroll = new JScrollPane(optionPanel);
-        optionScroll.setPreferredSize(new Dimension(700, 200));
-        dialogPanel.add(optionScroll, BorderLayout.CENTER);
+        optionScroll.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
+        optionScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+        optionScroll.setMaximumSize(new Dimension(650, 200));
+        optionScroll.setPreferredSize(new Dimension(650, 200));
+        optionScroll.getViewport().setBackground(new Color(249, 250, 251));
+
+        optionContainer.add(optionsLabel);
+        optionContainer.add(Box.createRigidArea(new Dimension(0, 8)));
+        optionContainer.add(optionScroll);
+
+        // Add all sections to main panel with proper spacing
+        mainPanel.add(questionSection);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        mainPanel.add(typeSection);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        mainPanel.add(optionContainer);
 
         ArrayList<JTextField> optionFields = new ArrayList<>();
         ArrayList<JCheckBox> correctBoxes = new ArrayList<>();
 
-        // If editing, load existing
+        // Load existing data if editing
         if (questionId != null) {
             try (Connection conn = DBConnection.getConnection()) {
                 String sql = "SELECT question_text, question_type FROM questions WHERE question_id = ?";
@@ -146,61 +406,101 @@ public class ManageQuestionsDialog extends JDialog {
                     typeComboBox.setSelectedItem(rs.getString("question_type"));
                 }
 
-                String optSql = "SELECT option_text, is_correct FROM options WHERE question_id = ?";
+                String optSql = "SELECT option_text, is_correct FROM options WHERE question_id = ? ORDER BY option_id";
                 PreparedStatement optStmt = conn.prepareStatement(optSql);
                 optStmt.setInt(1, questionId);
                 ResultSet optRs = optStmt.executeQuery();
                 while (optRs.next()) {
-                    JTextField optField = new JTextField(optRs.getString("option_text"), 30);
-                    JCheckBox correctBox = new JCheckBox("Correct", optRs.getBoolean("is_correct"));
+                    JTextField optField = new JTextField(optRs.getString("option_text"));
+                    optField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                    optField.setPreferredSize(new Dimension(450, 35));
+                    
+                    JCheckBox correctBox = new JCheckBox("Correct Answer", optRs.getBoolean("is_correct"));
+                    correctBox.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                    correctBox.setForeground(SUCCESS_COLOR);
+                    
                     optionFields.add(optField);
                     correctBoxes.add(correctBox);
-                    JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
-                    p.add(optField);
-                    p.add(correctBox);
+                    
+                    JPanel p = createOptionPanel(optField, correctBox);
                     optionPanel.add(p);
                 }
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Error loading question: " + e.getMessage());
+                showStyledMessage("Error loading question: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         }
 
-        // Add option button
-        JButton addOptionButton = new JButton("Add Option");
+        dialog.add(mainPanel, BorderLayout.CENTER);
+
+        // Footer
+        JPanel footerPanel = new JPanel(new BorderLayout());
+        footerPanel.setBackground(BACKGROUND_COLOR);
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(15, 25, 20, 25));
+
+        JButton addOptionButton = createStyledButton("+ Add Option", PRIMARY_COLOR);
         addOptionButton.addActionListener((ActionEvent e) -> {
-            JTextField optField = new JTextField(30);
-            JCheckBox correctBox = new JCheckBox("Correct");
+            JTextField optField = new JTextField();
+            optField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            optField.setPreferredSize(new Dimension(450, 35));
+            
+            JCheckBox correctBox = new JCheckBox("Correct Answer");
+            correctBox.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            correctBox.setForeground(SUCCESS_COLOR);
+            
             optionFields.add(optField);
             correctBoxes.add(correctBox);
-            JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            p.add(optField);
-            p.add(correctBox);
+            
+            JPanel p = createOptionPanel(optField, correctBox);
             optionPanel.add(p);
             optionPanel.revalidate();
+            optionPanel.repaint();
         });
-        dialogPanel.add(addOptionButton, BorderLayout.SOUTH);
 
-        // Show dialog
-        int option = JOptionPane.showConfirmDialog(
-                this,
-                dialogPanel,
-                questionId == null ? "Add Question" : "Edit Question",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
-        );
+        JPanel buttonGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        buttonGroup.setOpaque(false);
 
-        if (option == JOptionPane.OK_OPTION) {
-            saveQuestion(questionId, questionTextArea.getText(), 
-                         typeComboBox.getSelectedItem().toString(), 
-                         optionFields, correctBoxes);
-        }
+        JButton cancelButton = createStyledButton("Cancel", SECONDARY_COLOR);
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        JButton saveButton = createStyledButton(questionId == null ? "Create" : "Update", SUCCESS_COLOR);
+        saveButton.addActionListener(e -> {
+            if (saveQuestion(questionId, questionTextArea.getText(), 
+                           typeComboBox.getSelectedItem().toString(), 
+                           optionFields, correctBoxes)) {
+                dialog.dispose();
+            }
+        });
+
+        buttonGroup.add(cancelButton);
+        buttonGroup.add(saveButton);
+
+        footerPanel.add(addOptionButton, BorderLayout.WEST);
+        footerPanel.add(buttonGroup, BorderLayout.EAST);
+        dialog.add(footerPanel, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
     }
 
-    private void saveQuestion(Integer questionId, String text, String type,
+    private JPanel createOptionPanel(JTextField optField, JCheckBox correctBox) {
+        JPanel p = new JPanel(new BorderLayout(15, 0));
+        p.setOpaque(false);
+        p.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
+        p.setMaximumSize(new Dimension(600, 45));
+        p.setPreferredSize(new Dimension(600, 45));
+        
+        optField.setPreferredSize(new Dimension(450, 35));
+        correctBox.setPreferredSize(new Dimension(120, 35));
+        
+        p.add(optField, BorderLayout.CENTER);
+        p.add(correctBox, BorderLayout.EAST);
+        return p;
+    }
+
+    private boolean saveQuestion(Integer questionId, String text, String type,
                               ArrayList<JTextField> optionFields, ArrayList<JCheckBox> correctBoxes) {
         if (text.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Question text cannot be empty.");
-            return;
+            showStyledMessage("Question text cannot be empty!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return false;
         }
 
         try (Connection conn = DBConnection.getConnection()) {
@@ -215,6 +515,7 @@ public class ManageQuestionsDialog extends JDialog {
                 ResultSet keys = stmt.getGeneratedKeys();
                 keys.next();
                 qId = keys.getInt(1);
+                showStyledMessage("Question created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 String sql = "UPDATE questions SET question_text = ?, question_type = ? WHERE question_id = ?";
                 PreparedStatement stmt = conn.prepareStatement(sql);
@@ -228,6 +529,7 @@ public class ManageQuestionsDialog extends JDialog {
                 PreparedStatement delStmt = conn.prepareStatement(delSql);
                 delStmt.setInt(1, questionId);
                 delStmt.executeUpdate();
+                showStyledMessage("Question updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             }
 
             if ("multiple_choice".equals(type) || "true_false".equals(type)) {
@@ -246,20 +548,29 @@ public class ManageQuestionsDialog extends JDialog {
             }
 
             loadQuestions();
+            return true;
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error saving question: " + e.getMessage());
+            showStyledMessage("Error saving question: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
     }
 
     private void deleteQuestion() {
         String selected = questionList.getSelectedValue();
         if (selected == null) {
-            JOptionPane.showMessageDialog(this, "Select a question to delete.");
+            showStyledMessage("Please select a question to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int questionId = extractQuestionId(selected);
-        int confirm = JOptionPane.showConfirmDialog(this, "Delete this question?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        String questionText = selected.substring(selected.indexOf(":") + 2);
+        
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "Are you sure you want to delete this question?\n\n\"" + questionText + "\"\n\nThis action cannot be undone.", 
+            "Confirm Delete", 
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+            
         if (confirm == JOptionPane.YES_OPTION) {
             try (Connection conn = DBConnection.getConnection()) {
                 String sql = "DELETE FROM questions WHERE question_id = ?";
@@ -267,9 +578,14 @@ public class ManageQuestionsDialog extends JDialog {
                 stmt.setInt(1, questionId);
                 stmt.executeUpdate();
                 loadQuestions();
+                showStyledMessage("Question deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Error deleting question: " + e.getMessage());
+                showStyledMessage("Error deleting question: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    private void showStyledMessage(String message, String title, int messageType) {
+        JOptionPane.showMessageDialog(this, message, title, messageType);
     }
 }

@@ -5,6 +5,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 
 public class InstructorDashboard extends JPanel {
     private static final long serialVersionUID = 1L;
@@ -174,40 +178,444 @@ public class InstructorDashboard extends JPanel {
     private JPanel createDashboardHome() {
         JPanel homePanel = new JPanel(new BorderLayout());
         homePanel.setOpaque(false);
-        homePanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        homePanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
+
+        // Top section - Welcome and Stats Cards
+        JPanel topSection = new JPanel(new BorderLayout());
+        topSection.setOpaque(false);
 
         // Welcome section
+        JPanel welcomeSection = createWelcomeSection();
+        topSection.add(welcomeSection, BorderLayout.NORTH);
+
+        // Stats cards
+        JPanel statsSection = createStatsCardsSection();
+        topSection.add(statsSection, BorderLayout.CENTER);
+
+        // Bottom section - Recent Activity and Quick Actions
+        JPanel bottomSection = new JPanel(new BorderLayout(20, 0));
+        bottomSection.setOpaque(false);
+        bottomSection.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+
+        // Recent Activity (Left)
+        JPanel recentActivityPanel = createRecentActivityPanel();
+        bottomSection.add(recentActivityPanel, BorderLayout.WEST);
+
+        // Quick Actions (Right)
+        JPanel quickActionsPanel = createQuickActionsPanel();
+        bottomSection.add(quickActionsPanel, BorderLayout.CENTER);
+
+        homePanel.add(topSection, BorderLayout.NORTH);
+        homePanel.add(bottomSection, BorderLayout.CENTER);
+
+        return homePanel;
+    }
+
+    private JPanel createWelcomeSection() {
         JPanel welcomeCard = new JPanel(new BorderLayout());
         welcomeCard.setBackground(CARD_COLOR);
         welcomeCard.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(BORDER_COLOR, 1),
-            BorderFactory.createEmptyBorder(25, 25, 25, 25)
+            BorderFactory.createEmptyBorder(20, 25, 20, 25)
         ));
 
-        JLabel welcomeIcon = new JLabel("👋", SwingConstants.CENTER);
-        welcomeIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 48));
+        JLabel welcomeIcon = new JLabel("👋", SwingConstants.LEFT);
+        welcomeIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 32));
 
-        JLabel welcomeTitle = new JLabel("Welcome back, " + instructorUsername + "!", SwingConstants.CENTER);
-        welcomeTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setOpaque(false);
+
+        JLabel welcomeTitle = new JLabel("Welcome back, " + instructorUsername + "!");
+        welcomeTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
         welcomeTitle.setForeground(TEXT_COLOR);
+        welcomeTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel welcomeSubtitle = new JLabel("Ready to manage your quizzes and students", SwingConstants.CENTER);
+        JLabel welcomeSubtitle = new JLabel("Here's what's happening with your quizzes today");
         welcomeSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         welcomeSubtitle.setForeground(new Color(127, 140, 141));
+        welcomeSubtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel welcomeContent = new JPanel();
-        welcomeContent.setLayout(new BoxLayout(welcomeContent, BoxLayout.Y_AXIS));
-        welcomeContent.setOpaque(false);
-        welcomeContent.add(welcomeIcon);
-        welcomeContent.add(Box.createRigidArea(new Dimension(0, 15)));
-        welcomeContent.add(welcomeTitle);
-        welcomeContent.add(Box.createRigidArea(new Dimension(0, 8)));
-        welcomeContent.add(welcomeSubtitle);
+        textPanel.add(welcomeTitle);
+        textPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        textPanel.add(welcomeSubtitle);
 
-        welcomeCard.add(welcomeContent, BorderLayout.CENTER);
+        JPanel contentPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        contentPanel.setOpaque(false);
+        contentPanel.add(welcomeIcon);
+        contentPanel.add(Box.createRigidArea(new Dimension(15, 0)));
+        contentPanel.add(textPanel);
 
-        homePanel.add(welcomeCard, BorderLayout.CENTER);
-        return homePanel;
+        welcomeCard.add(contentPanel, BorderLayout.CENTER);
+        return welcomeCard;
+    }
+
+    private JPanel createStatsCardsSection() {
+        JPanel statsPanel = new JPanel(new GridLayout(1, 4, 15, 0));
+        statsPanel.setOpaque(false);
+        statsPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+
+        // Load statistics from database
+        int totalQuizzes = getTotalQuizzes();
+        int totalStudents = getTotalStudents();
+        int recentActivities = getRecentActivities();
+        double avgPerformance = getAveragePerformance();
+
+        // Create stat cards
+        JPanel quizzesCard = createStatCard("📝", "Total Quizzes", String.valueOf(totalQuizzes), PRIMARY_COLOR);
+        JPanel studentsCard = createStatCard("👥", "Students", String.valueOf(totalStudents), ACCENT_COLOR);
+        JPanel activitiesCard = createStatCard("📊", "Recent Activities", String.valueOf(recentActivities), new Color(52, 152, 219));
+        JPanel performanceCard = createStatCard("🎯", "Avg Performance", String.format("%.1f%%", avgPerformance), new Color(155, 89, 182));
+
+        statsPanel.add(quizzesCard);
+        statsPanel.add(studentsCard);
+        statsPanel.add(activitiesCard);
+        statsPanel.add(performanceCard);
+
+        return statsPanel;
+    }
+
+    private JPanel createStatCard(String icon, String title, String value, Color accentColor) {
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(CARD_COLOR);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
+        card.setPreferredSize(new Dimension(200, 100));
+
+        // Icon
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 28));
+        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Content
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setOpaque(false);
+
+        JLabel valueLabel = new JLabel(value);
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        valueLabel.setForeground(accentColor);
+        valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        titleLabel.setForeground(new Color(127, 140, 141));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        contentPanel.add(valueLabel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        contentPanel.add(titleLabel);
+
+        card.add(iconLabel, BorderLayout.WEST);
+        card.add(contentPanel, BorderLayout.CENTER);
+
+        return card;
+    }
+
+    private JPanel createRecentActivityPanel() {
+        JPanel activityPanel = new JPanel(new BorderLayout());
+        activityPanel.setBackground(CARD_COLOR);
+        activityPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
+        ));
+        activityPanel.setPreferredSize(new Dimension(400, 300));
+
+        // Header
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(SECONDARY_COLOR);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+
+        JLabel headerLabel = new JLabel("📋 Recent Activity");
+        headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        headerLabel.setForeground(Color.WHITE);
+
+        headerPanel.add(headerLabel, BorderLayout.WEST);
+        activityPanel.add(headerPanel, BorderLayout.NORTH);
+
+        // Activity list
+        JPanel activityListPanel = new JPanel();
+        activityListPanel.setLayout(new BoxLayout(activityListPanel, BoxLayout.Y_AXIS));
+        activityListPanel.setBackground(CARD_COLOR);
+        activityListPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+
+        // Load recent activities
+        loadRecentActivities(activityListPanel);
+
+        JScrollPane scrollPane = new JScrollPane(activityListPanel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.setBackground(CARD_COLOR);
+        scrollPane.getViewport().setBackground(CARD_COLOR);
+        activityPanel.add(scrollPane, BorderLayout.CENTER);
+
+        return activityPanel;
+    }
+
+    private JPanel createQuickActionsPanel() {
+        JPanel actionsPanel = new JPanel(new BorderLayout());
+        actionsPanel.setBackground(CARD_COLOR);
+        actionsPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
+        ));
+
+        // Header
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(SECONDARY_COLOR);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+
+        JLabel headerLabel = new JLabel("⚡ Quick Actions");
+        headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        headerLabel.setForeground(Color.WHITE);
+
+        headerPanel.add(headerLabel, BorderLayout.WEST);
+        actionsPanel.add(headerPanel, BorderLayout.NORTH);
+
+        // Actions grid
+        JPanel actionsGrid = new JPanel(new GridLayout(2, 2, 15, 15));
+        actionsGrid.setBackground(CARD_COLOR);
+        actionsGrid.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Action buttons
+        JButton createQuizBtn = createActionButton("📝", "Create Quiz", "Add new quiz");
+        createQuizBtn.addActionListener(e -> {
+            cardLayout.show(mainPanel, "ManageQuizzes");
+            updateNavButtonStates((JButton) sideBar.getComponent(4)); // Quizzes button
+        });
+
+        JButton viewStudentsBtn = createActionButton("👥", "View Students", "Manage students");
+        viewStudentsBtn.addActionListener(e -> {
+            cardLayout.show(mainPanel, "ManageStudents");
+            updateNavButtonStates((JButton) sideBar.getComponent(2)); // Students button
+        });
+
+        JButton viewResultsBtn = createActionButton("📊", "View Results", "Check performance");
+        viewResultsBtn.addActionListener(e -> {
+            cardLayout.show(mainPanel, "ViewResults");
+            updateNavButtonStates((JButton) sideBar.getComponent(6)); // Results button
+        });
+
+        JButton viewLogsBtn = createActionButton("📋", "Activity Logs", "Monitor activities");
+        viewLogsBtn.addActionListener(e -> {
+            cardLayout.show(mainPanel, "QuizLogs");
+            updateNavButtonStates((JButton) sideBar.getComponent(8)); // Logs button
+        });
+
+        actionsGrid.add(createQuizBtn);
+        actionsGrid.add(viewStudentsBtn);
+        actionsGrid.add(viewResultsBtn);
+        actionsGrid.add(viewLogsBtn);
+
+        actionsPanel.add(actionsGrid, BorderLayout.CENTER);
+        return actionsPanel;
+    }
+
+    private JButton createActionButton(String icon, String title, String subtitle) {
+        JButton button = new JButton();
+        button.setLayout(new BorderLayout());
+        button.setBackground(new Color(249, 250, 251));
+        button.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
+        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setOpaque(false);
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        titleLabel.setForeground(TEXT_COLOR);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel subtitleLabel = new JLabel(subtitle);
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        subtitleLabel.setForeground(new Color(127, 140, 141));
+        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        textPanel.add(titleLabel);
+        textPanel.add(Box.createRigidArea(new Dimension(0, 3)));
+        textPanel.add(subtitleLabel);
+
+        button.add(iconLabel, BorderLayout.NORTH);
+        button.add(textPanel, BorderLayout.CENTER);
+
+        // Hover effect
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(new Color(241, 243, 244));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(new Color(249, 250, 251));
+            }
+        });
+
+        return button;
+    }
+
+    // Database methods for statistics
+    private int getTotalQuizzes() {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "SELECT COUNT(*) FROM quizzes WHERE created_by = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, instructorId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private int getTotalStudents() {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "SELECT COUNT(DISTINCT si.student_id) FROM student_instructors si WHERE si.instructor_id = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, instructorId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private int getRecentActivities() {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "SELECT COUNT(*) FROM quiz_logs l " +
+                        "JOIN quizzes q ON l.quiz_id = q.quiz_id " +
+                        "WHERE q.created_by = ? AND l.timestamp >= NOW() - INTERVAL 24 HOUR";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, instructorId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private double getAveragePerformance() {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "SELECT AVG(r.score * 100.0 / (SELECT COUNT(*) FROM questions WHERE quiz_id = r.quiz_id)) as avg_percentage " +
+                        "FROM results r " +
+                        "JOIN quizzes q ON r.quiz_id = q.quiz_id " +
+                        "WHERE q.created_by = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, instructorId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("avg_percentage");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
+
+    private void loadRecentActivities(JPanel activityListPanel) {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "SELECT u.full_name, q.title, l.action, l.timestamp " +
+                        "FROM quiz_logs l " +
+                        "JOIN users u ON l.user_id = u.id " +
+                        "JOIN quizzes q ON l.quiz_id = q.quiz_id " +
+                        "WHERE q.created_by = ? " +
+                        "ORDER BY l.timestamp DESC LIMIT 8";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, instructorId);
+            ResultSet rs = stmt.executeQuery();
+
+            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+            
+            while (rs.next()) {
+                JPanel activityItem = createActivityItem(
+                    rs.getString("full_name"),
+                    rs.getString("title"),
+                    rs.getString("action"),
+                    timeFormat.format(rs.getTimestamp("timestamp"))
+                );
+                activityListPanel.add(activityItem);
+                activityListPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+            }
+
+            if (activityListPanel.getComponentCount() == 0) {
+                JLabel noActivity = new JLabel("No recent activities");
+                noActivity.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+                noActivity.setForeground(new Color(127, 140, 141));
+                noActivity.setAlignmentX(Component.CENTER_ALIGNMENT);
+                activityListPanel.add(noActivity);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private JPanel createActivityItem(String studentName, String quizTitle, String action, String time) {
+        JPanel item = new JPanel(new BorderLayout());
+        item.setOpaque(false);
+        item.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+
+        // Action icon
+        String icon = "📝";
+        Color actionColor = new Color(127, 140, 141);
+        if (action.toLowerCase().contains("started")) {
+            icon = "▶️";
+            actionColor = new Color(52, 152, 219);
+        } else if (action.toLowerCase().contains("submitted")) {
+            icon = "✅";
+            actionColor = ACCENT_COLOR;
+        } else if (action.toLowerCase().contains("cancelled")) {
+            icon = "❌";
+            actionColor = WARNING_COLOR;
+        }
+
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+
+        // Activity text
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setOpaque(false);
+
+        JLabel mainText = new JLabel(studentName + " " + action.toLowerCase());
+        mainText.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        mainText.setForeground(TEXT_COLOR);
+        mainText.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel subText = new JLabel(quizTitle);
+        subText.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        subText.setForeground(actionColor);
+        subText.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        textPanel.add(mainText);
+        textPanel.add(subText);
+
+        // Time
+        JLabel timeLabel = new JLabel(time);
+        timeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+        timeLabel.setForeground(new Color(127, 140, 141));
+
+        item.add(iconLabel, BorderLayout.WEST);
+        item.add(textPanel, BorderLayout.CENTER);
+        item.add(timeLabel, BorderLayout.EAST);
+
+        return item;
     }
 
     private JButton createNavButton(String icon, String text, boolean isActive) {

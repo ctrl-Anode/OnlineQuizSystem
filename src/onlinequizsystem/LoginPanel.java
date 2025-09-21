@@ -136,12 +136,15 @@ public class LoginPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
         
-        // Icon label
-        JLabel iconLabel = new JLabel(icon);
+        // Icon label with proper sizing
+        JLabel iconLabel = new JLabel(icon, SwingConstants.CENTER);
         iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
-        iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         iconLabel.setOpaque(true);
         iconLabel.setBackground(new Color(236, 240, 241));
+        iconLabel.setPreferredSize(new Dimension(45, 45));
+        iconLabel.setMinimumSize(new Dimension(45, 45));
+        iconLabel.setMaximumSize(new Dimension(45, 45));
         
         // Text field
         JTextField field = new JTextField();
@@ -174,6 +177,7 @@ public class LoginPanel extends JPanel {
         panel.add(iconLabel, BorderLayout.WEST);
         panel.add(field, BorderLayout.CENTER);
         panel.setPreferredSize(new Dimension(350, 45));
+        panel.setMaximumSize(new Dimension(350, 45));
         
         return panel;
     }
@@ -182,12 +186,15 @@ public class LoginPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
         
-        // Icon label
-        JLabel iconLabel = new JLabel(icon);
+        // Icon label with proper sizing
+        JLabel iconLabel = new JLabel(icon, SwingConstants.CENTER);
         iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
-        iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         iconLabel.setOpaque(true);
         iconLabel.setBackground(new Color(236, 240, 241));
+        iconLabel.setPreferredSize(new Dimension(45, 45));
+        iconLabel.setMinimumSize(new Dimension(45, 45));
+        iconLabel.setMaximumSize(new Dimension(45, 45));
         
         // Password field
         JPasswordField field = new JPasswordField();
@@ -203,6 +210,7 @@ public class LoginPanel extends JPanel {
         panel.add(iconLabel, BorderLayout.WEST);
         panel.add(field, BorderLayout.CENTER);
         panel.setPreferredSize(new Dimension(350, 45));
+        panel.setMaximumSize(new Dimension(350, 45));
         
         return panel;
     }

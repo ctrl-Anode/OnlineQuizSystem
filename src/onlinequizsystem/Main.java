@@ -102,43 +102,43 @@ public class Main extends JFrame {
         JPanel titleSection = new JPanel();
         titleSection.setLayout(new BoxLayout(titleSection, BoxLayout.Y_AXIS));
         titleSection.setOpaque(false);
-        titleSection.setBorder(BorderFactory.createEmptyBorder(50, 30, 30, 30));
+        titleSection.setBorder(BorderFactory.createEmptyBorder(30, 30, 20, 30));
 
         // App Icon
         JLabel iconLabel = new JLabel("🎓", JLabel.CENTER);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 64));
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 48));
         iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Main Title
         JLabel title = new JLabel("Online Quiz System", JLabel.CENTER);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 28));
         title.setForeground(new Color(44, 62, 80));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Subtitle
         JLabel subtitle = new JLabel("Test your knowledge and track your progress", JLabel.CENTER);
-        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         subtitle.setForeground(new Color(127, 140, 141));
         subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         titleSection.add(iconLabel);
-        titleSection.add(Box.createRigidArea(new Dimension(0, 20)));
+        titleSection.add(Box.createRigidArea(new Dimension(0, 15)));
         titleSection.add(title);
-        titleSection.add(Box.createRigidArea(new Dimension(0, 10)));
+        titleSection.add(Box.createRigidArea(new Dimension(0, 8)));
         titleSection.add(subtitle);
 
         landingPanel.add(titleSection, BorderLayout.NORTH);
 
-        // Center panel with buttons
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        // Center panel with features and buttons
+        JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setOpaque(false);
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(20, 100, 80, 100));
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 80, 10, 80));
 
         // Features section
-        JPanel featuresPanel = new JPanel(new GridLayout(1, 2, 40, 0));
+        JPanel featuresPanel = new JPanel(new GridLayout(1, 2, 30, 0));
         featuresPanel.setOpaque(false);
-        featuresPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 40, 0));
+        featuresPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
+        featuresPanel.setPreferredSize(new Dimension(800, 200));
 
         // Student features
         JPanel studentFeatures = createFeatureCard("👨‍🎓", "For Students", 
@@ -152,9 +152,10 @@ public class Main extends JFrame {
         featuresPanel.add(instructorFeatures);
 
         // Buttons panel
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 30, 0));
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 20, 0));
         buttonPanel.setOpaque(false);
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 0, 50));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        buttonPanel.setPreferredSize(new Dimension(600, 80));
 
         JButton loginBtn = createModernLandingButton("🔐 Sign In", new Color(41, 128, 185), "Access your account");
         JButton registerBtn = createModernLandingButton("👥 Create Account", new Color(46, 204, 113), "Join our platform");
@@ -162,16 +163,16 @@ public class Main extends JFrame {
         buttonPanel.add(loginBtn);
         buttonPanel.add(registerBtn);
 
-        centerPanel.add(featuresPanel);
-        centerPanel.add(buttonPanel);
+        centerPanel.add(featuresPanel, BorderLayout.CENTER);
+        centerPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         landingPanel.add(centerPanel, BorderLayout.CENTER);
 
         // Footer
         JLabel footer = new JLabel("© 2025 Online Quiz System - Empowering Education", JLabel.CENTER);
-        footer.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        footer.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         footer.setForeground(new Color(149, 165, 166));
-        footer.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        footer.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         landingPanel.add(footer, BorderLayout.SOUTH);
 
         // Actions
@@ -186,7 +187,7 @@ public class Main extends JFrame {
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(220, 221, 225), 1),
-            BorderFactory.createEmptyBorder(25, 25, 25, 25)
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
 
         // Header
@@ -195,31 +196,31 @@ public class Main extends JFrame {
         header.setOpaque(false);
         
         JLabel iconLabel = new JLabel(icon, JLabel.CENTER);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 36));
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 30));
         iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         JLabel titleLabel = new JLabel(title, JLabel.CENTER);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         titleLabel.setForeground(new Color(44, 62, 80));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         header.add(iconLabel);
-        header.add(Box.createRigidArea(new Dimension(0, 10)));
+        header.add(Box.createRigidArea(new Dimension(0, 8)));
         header.add(titleLabel);
 
         // Features list
         JPanel featuresList = new JPanel();
         featuresList.setLayout(new BoxLayout(featuresList, BoxLayout.Y_AXIS));
         featuresList.setOpaque(false);
-        featuresList.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+        featuresList.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
 
         for (String feature : features) {
             JLabel featureLabel = new JLabel("✓ " + feature);
-            featureLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            featureLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
             featureLabel.setForeground(new Color(127, 140, 141));
             featureLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             featuresList.add(featureLabel);
-            featuresList.add(Box.createRigidArea(new Dimension(0, 8)));
+            featuresList.add(Box.createRigidArea(new Dimension(0, 6)));
         }
 
         card.add(header, BorderLayout.NORTH);
@@ -230,13 +231,14 @@ public class Main extends JFrame {
 
     private JButton createModernLandingButton(String text, Color bgColor, String tooltip) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
         button.setBackground(bgColor);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25));
+        button.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setToolTipText(tooltip);
+        button.setPreferredSize(new Dimension(200, 50));
         
         // Add hover effect
         button.addMouseListener(new java.awt.event.MouseAdapter() {

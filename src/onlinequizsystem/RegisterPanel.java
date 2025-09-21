@@ -35,7 +35,7 @@ public class RegisterPanel extends JPanel {
         // Create main container with proper margins
         JPanel mainContainer = new JPanel(new BorderLayout());
         mainContainer.setOpaque(false);
-        mainContainer.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        mainContainer.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
         // Header Panel
         JPanel headerPanel = createHeaderPanel();
@@ -50,21 +50,31 @@ public class RegisterPanel extends JPanel {
         mainContainer.add(registrationCard, BorderLayout.CENTER);
         mainContainer.add(footerPanel, BorderLayout.SOUTH);
 
-        add(mainContainer, BorderLayout.CENTER);
+        // Wrap the main container in a scroll pane
+        JScrollPane scrollPane = new JScrollPane(mainContainer);
+        scrollPane.setBorder(null);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setBackground(BACKGROUND_COLOR);
+        scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+
+        add(scrollPane, BorderLayout.CENTER);
     }
 
     private JPanel createHeaderPanel() {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 25, 0));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
         // Registration icon
-        JLabel iconLabel = new JLabel("👥", SwingConstants.CENTER);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 42));
+        JLabel iconLabel = new JLabel("⊕", SwingConstants.CENTER);
+        iconLabel.setFont(new Font("Segoe UI", Font.BOLD, 36));
+        iconLabel.setForeground(PRIMARY_COLOR);
         
         // Title
         JLabel titleLabel = new JLabel("Create Account", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLabel.setForeground(TEXT_COLOR);
         
         // Subtitle
@@ -76,9 +86,9 @@ public class RegisterPanel extends JPanel {
         titleContainer.setLayout(new BoxLayout(titleContainer, BoxLayout.Y_AXIS));
         titleContainer.setOpaque(false);
         titleContainer.add(iconLabel);
-        titleContainer.add(Box.createRigidArea(new Dimension(0, 8)));
+        titleContainer.add(Box.createRigidArea(new Dimension(0, 6)));
         titleContainer.add(titleLabel);
-        titleContainer.add(Box.createRigidArea(new Dimension(0, 5)));
+        titleContainer.add(Box.createRigidArea(new Dimension(0, 4)));
         titleContainer.add(subtitleLabel);
 
         headerPanel.add(titleContainer, BorderLayout.CENTER);
@@ -93,17 +103,18 @@ public class RegisterPanel extends JPanel {
                 BorderFactory.createMatteBorder(0, 0, 2, 2, new Color(0, 0, 0, 30)),
                 BorderFactory.createMatteBorder(0, 0, 0, 0, new Color(0, 0, 0, 0))
             ),
-            BorderFactory.createEmptyBorder(35, 35, 35, 35)
+            BorderFactory.createEmptyBorder(30, 40, 30, 40)
         ));
 
         cardPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.CENTER;
 
         // Full Name Field
         gbc.gridx = 0; gbc.gridy = 0;
-        gbc.gridwidth = 2;
+        gbc.gridwidth = 1;
         gbc.insets = new Insets(0, 0, 15, 0);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.fill = GridBagConstraints.NONE;
         JPanel fullNamePanel = createFieldPanel("👤", "Full Name");
         fullnameField = (JTextField) fullNamePanel.getComponent(1);
         cardPanel.add(fullNamePanel, gbc);
@@ -128,7 +139,7 @@ public class RegisterPanel extends JPanel {
 
         // Role Selection
         gbc.gridy = 4;
-        gbc.insets = new Insets(0, 0, 25, 0);
+        gbc.insets = new Insets(0, 0, 20, 0);
         JPanel rolePanel = createRolePanel();
         cardPanel.add(rolePanel, gbc);
 
@@ -146,15 +157,24 @@ public class RegisterPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
         
-        // Icon label
-        JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        // Icon label with simple text symbols
+        String displayIcon;
+        if (icon.equals("👤")) displayIcon = "♦";  // Full name
+        else if (icon.equals("🔤")) displayIcon = "@";  // Username 
+        else if (icon.equals("📧")) displayIcon = "✉";  // Email
+        else displayIcon = "●";  // Default
+        
+        JLabel iconLabel = new JLabel(displayIcon);
+        iconLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
         iconLabel.setOpaque(true);
         iconLabel.setBackground(new Color(236, 240, 241));
+        iconLabel.setPreferredSize(new Dimension(40, 45));
+        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        iconLabel.setForeground(new Color(108, 122, 137));
         
         // Text field
-        JTextField field = new JTextField();
+        JTextField field = new JTextField(20);
         field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         field.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(FIELD_BORDER, 1),
@@ -183,7 +203,8 @@ public class RegisterPanel extends JPanel {
 
         panel.add(iconLabel, BorderLayout.WEST);
         panel.add(field, BorderLayout.CENTER);
-        panel.setPreferredSize(new Dimension(400, 45));
+        panel.setPreferredSize(new Dimension(320, 45));
+        panel.setMaximumSize(new Dimension(320, 45));
         
         return panel;
     }
@@ -193,14 +214,17 @@ public class RegisterPanel extends JPanel {
         panel.setOpaque(false);
         
         // Icon label
-        JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        JLabel iconLabel = new JLabel("♠");
+        iconLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
         iconLabel.setOpaque(true);
         iconLabel.setBackground(new Color(236, 240, 241));
+        iconLabel.setPreferredSize(new Dimension(40, 45));
+        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        iconLabel.setForeground(new Color(108, 122, 137));
         
         // Password field
-        JPasswordField field = new JPasswordField();
+        JPasswordField field = new JPasswordField(20);
         field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         field.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(FIELD_BORDER, 1),
@@ -212,7 +236,8 @@ public class RegisterPanel extends JPanel {
 
         panel.add(iconLabel, BorderLayout.WEST);
         panel.add(field, BorderLayout.CENTER);
-        panel.setPreferredSize(new Dimension(400, 45));
+        panel.setPreferredSize(new Dimension(320, 45));
+        panel.setMaximumSize(new Dimension(320, 45));
         
         return panel;
     }
@@ -222,25 +247,29 @@ public class RegisterPanel extends JPanel {
         panel.setOpaque(false);
         
         // Icon label
-        JLabel iconLabel = new JLabel("🎭");
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        JLabel iconLabel = new JLabel("♥");
+        iconLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
         iconLabel.setOpaque(true);
         iconLabel.setBackground(new Color(236, 240, 241));
+        iconLabel.setPreferredSize(new Dimension(40, 45));
+        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        iconLabel.setForeground(new Color(108, 122, 137));
         
         // Role ComboBox
         roleBox = new JComboBox<>(new String[]{"Student", "Instructor"});
         roleBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         roleBox.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(FIELD_BORDER, 1),
-            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+            BorderFactory.createEmptyBorder(8, 12, 8, 12)
         ));
         roleBox.setBackground(Color.WHITE);
         roleBox.setForeground(TEXT_COLOR);
 
         panel.add(iconLabel, BorderLayout.WEST);
         panel.add(roleBox, BorderLayout.CENTER);
-        panel.setPreferredSize(new Dimension(400, 45));
+        panel.setPreferredSize(new Dimension(320, 45));
+        panel.setMaximumSize(new Dimension(320, 45));
         
         return panel;
     }
@@ -248,7 +277,7 @@ public class RegisterPanel extends JPanel {
     private JPanel createFooterPanel() {
         JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setOpaque(false);
-        footerPanel.setBorder(BorderFactory.createEmptyBorder(25, 0, 0, 0));
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
         // Back button
         JButton backButton = createStyledButton("← Back to Home", SECONDARY_COLOR);
@@ -298,7 +327,8 @@ public class RegisterPanel extends JPanel {
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(400, 45));
+        button.setPreferredSize(new Dimension(320, 45));
+        button.setMaximumSize(new Dimension(320, 45));
         
         // Add hover effect
         button.addMouseListener(new MouseAdapter() {
